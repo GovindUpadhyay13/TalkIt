@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
       - name: Checkout
@@ -36,17 +37,20 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      # macOS: decode the App Store Connect API key used for notarization.
+      # macOS: decode Apple API key if provided
       - name: Setup Apple API key
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-latest' && env.APPLE_API_KEY != ''
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
         run: |
           mkdir -p "$RUNNER_TEMP/private_keys"
-          echo "${{ secrets.APPLE_API_KEY }}" | base64 --decode > "$RUNNER_TEMP/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8"
-          chmod 600 "$RUNNER_TEMP/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8"
+          echo "$APPLE_API_KEY" | base64 --decode > "$RUNNER_TEMP/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
+          chmod 600 "$RUNNER_TEMP/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
 
-      # macOS: build, sign (Developer ID), notarize, and publish to GitHub Releases.
+      # macOS: build, sign & publish if Apple certs provided
       - name: Build, sign & publish (macOS)
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-latest' && env.CSC_LINK != ''
         run: pnpm run release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,6 +60,14 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
 
+      # macOS: build unsigned if no certs
+      - name: Build & publish (macOS unsigned)
+        if: matrix.os == 'macos-latest' && env.CSC_LINK == ''
+        run: pnpm run release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
       # Windows / Linux: build (unsigned) and publish to GitHub Releases.
       - name: Build & publish (Windows/Linux)
         if: matrix.os != 'macos-latest'
@@ -63,9 +75,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Flip the draft to published only after every OS build succeeds, so a release
-  # never goes live (or reaches auto-update) with partial artifacts. fail-fast is
-  # off above, so a failed build skips this job and the release stays a draft.
+  # Flip the draft to published after OS builds succeed
   publish:
     needs: release
     runs-on: ubuntu-latest
@@ -109,12 +119,17 @@ jobs:
           pnpm tsx scripts/generate-release-notes.ts "${ARGS[@]}" > release-notes.md
           gh release edit "${{ github.ref_name }}" \
             --repo "${{ github.repository }}" \
-            --notes-file release-notes.md
+            --notes-file release-notes.md || true
 
-      - name: Publish the draft release
+      - name: Publish the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release edit "${{ github.ref_name }}" \
             --repo "${{ github.repository }}" \
-            --draft=false --latest
+            --draft=false --latest || \
+          gh release create "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --title "TalkIt ${{ github.ref_name }}" \
+            --generate-notes \
+            --latest

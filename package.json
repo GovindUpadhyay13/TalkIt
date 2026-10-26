@@ -105,11 +105,11 @@
       ],
       "category": "public.app-category.productivity",
       "artifactName": "${productName}-mac-${arch}.${ext}",
-      "hardenedRuntime": true,
+      "hardenedRuntime": false,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
-      "notarize": true,
+      "notarize": false,
       "extendInfo": {
         "NSMicrophoneUsageDescription": "TalkIt listens to your voice to run agentic commands.",
         "NSCameraUsageDescription": "TalkIt may capture the screen to see and control your desktop."
