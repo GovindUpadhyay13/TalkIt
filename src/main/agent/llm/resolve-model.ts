@@ -96,10 +96,11 @@ export async function resolveModel(config: OpenDexConfig): Promise<LanguageModel
           probe.reason || `Gemma model "${modelId}" is not available in Ollama. Run: ollama run ${modelId}`,
         );
       }
-      return createOpenAI({
+      const openai = createOpenAI({
         baseURL: baseUrl,
         apiKey: "ollama",
-      })(modelId);
+      });
+      return openai.chat(modelId);
     }
     case "gemini-gemma": {
       const apiKey = process.env.GEMINI_API_KEY;
@@ -109,10 +110,11 @@ export async function resolveModel(config: OpenDexConfig): Promise<LanguageModel
         );
       }
       const modelId = model || "gemini-2.5-flash";
-      return createOpenAI({
+      const openai = createOpenAI({
         baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
         apiKey,
-      })(modelId);
+      });
+      return openai.chat(modelId);
     }
     case "openai":
       if (!process.env.OPENAI_API_KEY) throw new Error("no OpenAI API key is set");
