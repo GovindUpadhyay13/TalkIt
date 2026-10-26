@@ -80,15 +80,13 @@ function buildWakeRegex(word: string): RegExp {
   return new RegExp(`\\b(?:hey\\s+)?(?:talk\\s*it|talkit|target|take\\s*it|hate\\s+or\\s+get|${escapeRegExp(cleaned)})\\b`, "i");
 }
 
-// Trailing silence (after speech is heard) that ends an utterance so we can
-// transcribe and act. Kept short — this is the main lever on the gap between
-// "user stopped talking" and "assistant starts". A natural between-word pause
-// is well under this.
-const END_SILENCE_MS = 1000;
-// How long to wait for the user to *start* speaking before giving up quietly.
-// Longer for follow-ups (the user may take a beat before continuing).
-const COMMAND_NO_SPEECH_MS = 6000;
-const FOLLOW_UP_NO_SPEECH_MS = 10000;
+// Trailing silence (after speech is heard) that ends an utterance and stops
+// recording. Configured to exactly 2 seconds of continuous silence.
+const END_SILENCE_MS = 2000;
+const CONTINUOUS_SILENCE_TIMEOUT_MS = 2000;
+// How long to wait for the user to start speaking initially before giving up quietly.
+const COMMAND_NO_SPEECH_MS = 4000;
+const FOLLOW_UP_NO_SPEECH_MS = 4000;
 const COMMAND_HARD_TIMEOUT_MS = 15000;
 // After TTS finishes we wait this long before resuming listening, to give
 // speaker output time to flush and the browser's AEC chain to settle.
@@ -1220,8 +1218,8 @@ export function useDex(options: UseDexOptions): UseDexResult {
                 console.warn("[TalkIt] insertDictatedText error:", err);
               }
 
-              // Keep listening for continuous speech
-              noSpeechMs = COMMAND_NO_SPEECH_MS;
+              // Stop recording and transcribing after 2 seconds of continuous silence
+              noSpeechMs = CONTINUOUS_SILENCE_TIMEOUT_MS;
             }
 
             // Exited loop: natural silence or aborted -> cleanly end session and return to standby
@@ -1342,7 +1340,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
         resetSilenceTimer();
       };
       rec.onspeechend = () => {
-        setTimeout(() => settle(finalTranscript), 600);
+        setTimeout(() => settle(finalTranscript), 2000);
       };
       rec.onend = () => {
         if (!resolved) settle(finalTranscript);
