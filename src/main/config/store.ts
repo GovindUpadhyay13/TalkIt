@@ -67,6 +67,11 @@ function loadConfigFile(): OpenDexConfig {
       merged.voiceInput = { ...merged.voiceInput, wakeMode: "vosk" };
     }
     merged.assistant.wakeWord = "Hey TalkIt";
+    try {
+      writeFileSync(configPath, JSON.stringify(merged, null, 2), "utf8");
+    } catch {
+      // ignore
+    }
     return merged;
   } catch (err) {
     console.error("[opendex config] failed to read config.json, using defaults", err);

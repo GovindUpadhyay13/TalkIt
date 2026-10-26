@@ -77,7 +77,7 @@ function escapeRegExp(s: string): string {
 
 function buildWakeRegex(word: string): RegExp {
   const cleaned = word.trim() || "talkit";
-  return new RegExp(`\\b(?:hey\\s+)?(?:talk\\s*it|${escapeRegExp(cleaned)})\\b`, "i");
+  return new RegExp(`\\b(?:hey\\s+)?(?:talk\\s*it|talkit|target|take\\s*it|hate\\s+or\\s+get|${escapeRegExp(cleaned)})\\b`, "i");
 }
 
 // Trailing silence (after speech is heard) that ends an utterance so we can
@@ -1036,22 +1036,9 @@ export function useDex(options: UseDexOptions): UseDexResult {
           startModeRef.current?.("command");
         };
 
-        if (opts.wakeMode === "manual") {
-          // No continuous listening — wait for pushToTalk(). Still deliver the
-          // first greeting proactively so manual users get the briefing.
-          if (!hasBriefedRef.current && opts.greetingEnabled) {
-            hasBriefedRef.current = true;
-            if (optionsRef.current.voiceMode === "realtime") {
-              realtimePendingRef.current = { briefing: true };
-              startModeRef.current?.("command");
-            } else {
-              void runCommand("Give me my briefing.", { mode: "briefing" });
-            }
-          }
-          return;
-        }
+        const wakeMode = opts.wakeMode === "webspeech" ? "webspeech" : "vosk";
 
-        if (opts.wakeMode === "vosk") {
+        if (wakeMode === "vosk") {
           void (async () => {
             // Code-split: the Vosk WASM loads only in this mode.
             const { VoskWakeEngine } = await import("./engines/vosk-wake");

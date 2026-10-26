@@ -6,7 +6,7 @@
 
 const WAIT_PATTERN = /(?:^|\b)(?:whisper\s*wait|whisper,\s*wait|whisper\s*weight)\b/i;
 const RESUME_PATTERN = /(?:^|\b)(?:talk\s*it\s+continue|talkit\s+continue|continue|resume)\b/i;
-const WAKE_PATTERN = /\b(?:hey\s+)?talk\s*it\b/i;
+const WAKE_PATTERN = /\b(?:hey\s+)?(?:talk\s*it|talkit|target|take\s*it|hate\s+or\s+get)\b/i;
 
 export interface WisprParseResult {
   type: "wait" | "transcription" | "empty";

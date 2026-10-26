@@ -22,7 +22,19 @@ export class VoskWakeEngine implements WakeEngine {
   ) {}
 
   async start(onWake: () => void): Promise<void> {
-    const wakePhrases = ["hey talkit", "talkit", "hey talk it", "talk it", "computer"];
+    const wakePhrases = [
+      "hey talk it",
+      "talk it",
+      "hey talk",
+      "talk",
+      "hey target",
+      "target",
+      "hey take it",
+      "take it",
+      "hey talkit",
+      "talkit",
+      "computer",
+    ];
     try {
       this.onLoading?.(true);
       const model = await loadVoskModel(this.modelUrl);
@@ -31,12 +43,16 @@ export class VoskWakeEngine implements WakeEngine {
       this.rec = new model.KaldiRecognizer(16000, JSON.stringify([...wakePhrases, "[unk]"]));
       const matches = (text?: string) => {
         if (!text) return false;
-        const lower = text.toLowerCase();
+        const lower = text.toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ");
         return (
-          lower.includes("hey talkit") ||
-          lower.includes("talkit") ||
-          lower.includes("hey talk it") ||
+          lower.includes("hey talk") ||
           lower.includes("talk it") ||
+          lower.includes("talkit") ||
+          lower.includes("hey target") ||
+          lower.includes("target") ||
+          lower.includes("hate or get") ||
+          lower.includes("hey take") ||
+          lower.includes("take it") ||
           lower.includes("computer")
         );
       };
