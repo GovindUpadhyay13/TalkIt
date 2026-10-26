@@ -44,8 +44,26 @@ function loadConfigFile(): OpenDexConfig {
   if (!existsSync(configPath)) return structuredClone(DEFAULT_CONFIG);
   try {
     const raw = JSON.parse(readFileSync(configPath, "utf8")) as DeepPartial<OpenDexConfig>;
-    // Merge over defaults so new fields added in later versions are filled in.
-    return mergeConfig(DEFAULT_CONFIG, raw);
+    const merged = mergeConfig(DEFAULT_CONFIG, raw);
+    // Sanitize deprecated legacy settings
+    if ((merged.tts as any)?.engine === "elevenlabs" || !merged.tts?.engine) {
+      merged.tts.engine = "system";
+    }
+    if ((merged.llm as any)?.provider === "xai" || !merged.llm?.provider) {
+      merged.llm.provider = "gemini-gemma";
+      merged.llm.model = "gemini-2.5-flash";
+    }
+    if (merged.assistant.name === "Dex") {
+      merged.assistant.name = "TalkIt";
+      merged.assistant.wakeWord = "talkit";
+    }
+    if (merged.appearance.theme === "editorial") {
+      merged.appearance.theme = "obsidian-lime";
+    }
+    if (!merged.skills.permissions?.open || merged.skills.permissions.open === "ask") {
+      merged.skills.permissions = { ...merged.skills.permissions, open: "always" };
+    }
+    return merged;
   } catch (err) {
     console.error("[opendex config] failed to read config.json, using defaults", err);
     return structuredClone(DEFAULT_CONFIG);

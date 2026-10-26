@@ -202,7 +202,7 @@ export const DEFAULT_CONFIG: OpenDexConfig = {
   skills: {
     // `computer` is opt-in (off until the user enables it in Settings).
     enabled: { open: true, computer: false },
-    permissions: { open: "ask", computer: "ask" },
+    permissions: { open: "always", computer: "ask" },
   },
   computer: { animateCursor: true },
   // Anonymous usage analytics, on by default (opt-out in onboarding/Settings).
