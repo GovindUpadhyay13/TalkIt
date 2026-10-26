@@ -1036,107 +1036,71 @@ export function useDex(options: UseDexOptions): UseDexResult {
           startModeRef.current?.("command");
         };
 
-        const wakeMode = opts.wakeMode === "webspeech" ? "webspeech" : "vosk";
+        // Arm Web Speech continuous spotter as instant parallel listener
+        const armWebSpeechSpotter = () => {
+          if (recognitionRef.current || modeRef.current !== "wake" || mutedRef.current) return;
+          const rec = createRecognition({
+            continuous: true,
+            interimResults: true,
+            lang: "en-US",
+          });
+          if (!rec) return;
+          recognitionRef.current = rec;
+          let resultBaseline = 0;
+          rec.onresult = (event) => {
+            if (mutedRef.current) return;
+            const { finalText, interimText } = joinTranscript(event.results, resultBaseline);
+            const combined = `${finalText} ${interimText}`.trim();
+            const match = combined.match(buildWakeRegex(optionsRef.current.wakeWord));
+            if (match && match.index !== undefined) {
+              resultBaseline = event.results.length;
+              stopRecognition();
+              stopWakeEngine();
+              startModeRef.current?.("command");
+            }
+          };
+          rec.onerror = () => {};
+          rec.onend = () => {
+            recognitionRef.current = null;
+            if (modeRef.current === "wake" && !mutedRef.current && !restartGuardRef.current) {
+              setTimeout(() => {
+                if (modeRef.current === "wake" && !mutedRef.current) armWebSpeechSpotter();
+              }, 400);
+            }
+          };
+          try {
+            rec.start();
+          } catch {
+            // ignore
+          }
+        };
 
-        if (wakeMode === "vosk") {
-          void (async () => {
-            // Code-split: the Vosk WASM loads only in this mode.
+        // 1. Arm Vosk offline acoustic model
+        void (async () => {
+          try {
             const { VoskWakeEngine } = await import("./engines/vosk-wake");
             if (modeRef.current !== "wake") return;
             const engine = new VoskWakeEngine(
               opts.wakeWord,
               undefined,
               (s) => {
-                if (s !== "ok") setStatus("unsupported");
+                if (s !== "ok") {
+                  armWebSpeechSpotter();
+                }
               },
               (loading) =>
                 setLoadingModel({ active: loading, label: "Loading wake model…" }),
             );
             wakeEngineRef.current = engine;
             await engine.start(onWake);
-          })();
-          return;
-        }
+          } catch (err) {
+            console.warn("[TalkIt] Vosk wake engine failed to start", err);
+            armWebSpeechSpotter();
+          }
+        })();
 
-        // wakeMode === "webspeech": continuous recognition scanning for the word.
-        const rec = createRecognition({
-          continuous: true,
-          interimResults: true,
-          lang: "en-US",
-        });
-        if (!rec) {
-          setStatus("unsupported");
-          return;
-        }
-        recognitionRef.current = rec;
-        let resultBaseline = 0;
-        rec.onresult = (event) => {
-          if (mutedRef.current) return; // ignore late results while on standby
-          const { finalText, interimText } = joinTranscript(
-            event.results,
-            resultBaseline,
-          );
-          const combined = `${finalText} ${interimText}`.trim();
-          // Any successful result means the engine is reachable — reset the
-          // failure backoff.
-          wakeNetworkFailuresRef.current = 0;
-          const match = combined.match(buildWakeRegex(optionsRef.current.wakeWord));
-          if (match && match.index !== undefined) {
-            resultBaseline = event.results.length;
-            stopRecognition();
-            startModeRef.current?.("command");
-          }
-        };
-        rec.onerror = (event) => {
-          if (event.error === "not-allowed") {
-            setStatus("error");
-            return;
-          }
-          // Remote-service failures (unavailable in packaged Electron): count
-          // them so onend can back off / bail instead of looping tightly.
-          if (
-            event.error === "network" ||
-            event.error === "service-not-allowed"
-          ) {
-            wakeNetworkFailuresRef.current += 1;
-          }
-        };
-        rec.onend = () => {
-          if (
-            modeRef.current !== "wake" ||
-            restartGuardRef.current ||
-            mutedRef.current
-          ) {
-            return;
-          }
-          // The wake engine is unreachable — stop hammering it and surface that
-          // voice isn't available yet (local engines arrive in Phase 4).
-          if (wakeNetworkFailuresRef.current >= WAKE_MAX_NETWORK_FAILURES) {
-            stopRecognition();
-            setStatus("unsupported");
-            return;
-          }
-          // Back off proportionally to recent failures (immediate when healthy).
-          const backoff = wakeNetworkFailuresRef.current * 600;
-          if (backoff === 0) {
-            try {
-              rec.start();
-              return;
-            } catch {
-              // fall through to delayed restart
-            }
-          }
-          setTimeout(() => {
-            if (modeRef.current === "wake" && !mutedRef.current) {
-              startModeRef.current?.("wake");
-            }
-          }, backoff || 250);
-        };
-        try {
-          rec.start();
-        } catch (err) {
-          console.error("[opendex] failed to start wake recognition", err);
-        }
+        // 2. Also arm Web Speech spotter in parallel so recognition is instantaneous
+        armWebSpeechSpotter();
         return;
       }
 

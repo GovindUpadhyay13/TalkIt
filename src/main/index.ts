@@ -173,8 +173,8 @@ function createOverlayWindow() {
   const overlay = new BrowserWindow({
     // Spans the work area of the primary display as a thin top strip; the
     // renderer centers its content and stays otherwise empty/transparent.
-    width: 100,
-    height: 100,
+    width: 480,
+    height: 90,
     show: false,
     frame: false,
     transparent: true,
@@ -219,17 +219,17 @@ function createOverlayWindow() {
   loadRenderer(overlay, "overlay");
 }
 
-// Size/position the overlay to a top strip on the display under the cursor (so
-// it tracks whichever monitor is being controlled during computer-use).
 function positionOverlay(overlay: BrowserWindow) {
   const display = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  const { x, y, width, height } = display.workArea;
-  // Float the hints at the BOTTOM of the work area (above the Dock) so they sit
-  // out of the way of the notch bar at the top. The HUD content is bottom-anchored
-  // (Stop at bottom-4, banners stacking up from bottom-16); tall enough for the
-  // Stop control + the few activity banners above it.
-  const h = 260;
-  overlay.setBounds({ x, y: y + height - h, width, height: h });
+  const { x, y, width } = display.workArea;
+  const overlayWidth = 480;
+  const overlayHeight = 90;
+  overlay.setBounds({
+    x: Math.round(x + (width - overlayWidth) / 2),
+    y: Math.round(y + 16),
+    width: overlayWidth,
+    height: overlayHeight,
+  });
 }
 
 // ── Permission popup ──────────────────────────────────────────────────────────
