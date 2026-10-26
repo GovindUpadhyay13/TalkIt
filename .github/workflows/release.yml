@@ -33,6 +33,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Linux packaging tools
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools libfuse2
+
       # Gate the release on a typecheck so broken types can't ship via auto-update.
       - name: Typecheck
         run: pnpm typecheck
@@ -78,6 +84,7 @@ jobs:
   # Flip the draft to published after OS builds succeed
   publish:
     needs: release
+    if: always() && !cancelled()
     runs-on: ubuntu-latest
     env:
       AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
