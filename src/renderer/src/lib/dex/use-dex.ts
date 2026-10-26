@@ -1137,6 +1137,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
             setLiveCaption("Transcribing (Wispr Flow)…");
 
             let isPaused = false;
+            let isExecutionMode = false;
 
             while (!ac.signal.aborted && !mutedRef.current) {
               if (isPaused) {
@@ -1164,14 +1165,14 @@ export function useDex(options: UseDexOptions): UseDexResult {
 
                 if (resume) {
                   isPaused = false;
-                  setStatus("writing");
-                  setLiveCaption("Resuming transcription…");
+                  setStatus(isExecutionMode ? "active_listening" : "writing");
+                  setLiveCaption(isExecutionMode ? "⚡ Execution mode active · State your command" : "Resuming transcription…");
                 }
                 continue;
               }
 
-              // Active transcription capture
-              setStatus("writing");
+              // Active capture
+              setStatus(isExecutionMode ? "active_listening" : "writing");
               let text = "";
               try {
                 text = await engine.capture({
@@ -1194,6 +1195,57 @@ export function useDex(options: UseDexOptions): UseDexResult {
                 break;
               }
 
+              // Mode switch to typing mode
+              if (parsed.type === "switch_typing") {
+                isExecutionMode = false;
+                setStatus("writing");
+                setLiveCaption("✍️ Typing mode active (Wispr Flow)");
+                continue;
+              }
+
+              // Execution mode detected (e.g. "Hey TalkIt, execution mode open notepad" or "execution mode")
+              if (parsed.type === "execute") {
+                isExecutionMode = true;
+                if (parsed.textBefore) {
+                  setLiveCaption(parsed.textBefore);
+                  appendTurn("user", parsed.textBefore);
+                  try {
+                    await window.opendex.insertDictatedText(parsed.textBefore);
+                  } catch (err) {
+                    console.warn("[TalkIt] insertDictatedText error:", err);
+                  }
+                }
+
+                const task = parsed.task?.trim() || "";
+                if (task) {
+                  // Direct task execution: run through the TalkIt agent pipeline
+                  setStatus("thinking");
+                  setLiveCaption("⚡ Executing: " + task);
+                  await runCommand(task);
+                  startModeRef.current?.("wake");
+                  break;
+                } else {
+                  // Switched into execution mode, awaiting immediate command
+                  setStatus("active_listening");
+                  setLiveCaption("⚡ Execution mode active · State your task or command...");
+                  continue;
+                }
+              }
+
+              // If already in execution mode, execute this utterance instead of typing it
+              if (isExecutionMode) {
+                const commandText = parsed.text || text.trim();
+                if (commandText) {
+                  setStatus("thinking");
+                  setLiveCaption("⚡ Executing: " + commandText);
+                  await runCommand(commandText);
+                  startModeRef.current?.("wake");
+                  break;
+                }
+                continue;
+              }
+
+              // Pause command ("Whisper wait")
               if (parsed.type === "wait") {
                 if (parsed.textBefore) {
                   setLiveCaption(parsed.textBefore);
@@ -1208,7 +1260,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
                 continue;
               }
 
-              // Normal transcription: seamlessly insert into active window and update UI
+              // Normal typing mode: seamlessly insert into active window and update UI
               const transcribed = parsed.text!;
               setLiveCaption(transcribed);
               appendTurn("user", transcribed);
@@ -1266,14 +1318,26 @@ export function useDex(options: UseDexOptions): UseDexResult {
           // Nothing heard — roll back to passive wake.
           startModeRef.current?.("wake");
         } else {
-          const waitPattern = /(?:^|\b)(?:whisper\s*wait|whisper,\s*wait|whisper\s*weight)\b/i;
-          const waitMatch = cleaned.match(waitPattern);
-          if (waitMatch && waitMatch.index !== undefined) {
-            const beforeWait = cleaned.slice(0, waitMatch.index).trim();
-            if (beforeWait && /[a-z0-9]/i.test(beforeWait)) {
-              setLiveCaption(beforeWait);
-              appendTurn("user", beforeWait);
-              void window.opendex.insertDictatedText(beforeWait);
+          const parsed = parseWisprFlowChunk(cleaned);
+          if (parsed.type === "execute") {
+            const task = parsed.task?.trim() || "";
+            if (parsed.textBefore) {
+              setLiveCaption(parsed.textBefore);
+              appendTurn("user", parsed.textBefore);
+              void window.opendex.insertDictatedText(parsed.textBefore);
+            }
+            if (task) {
+              setLiveCaption("⚡ Executing: " + task);
+              void runCommand(task);
+            } else {
+              setLiveCaption("⚡ Execution mode active · State your command...");
+              startModeRef.current?.("command");
+            }
+          } else if (parsed.type === "wait") {
+            if (parsed.textBefore) {
+              setLiveCaption(parsed.textBefore);
+              appendTurn("user", parsed.textBefore);
+              void window.opendex.insertDictatedText(parsed.textBefore);
             }
             setStatus("paused");
             setLiveCaption("Whisper paused. Type on keyboard. Say 'TalkIt continue' to resume.");

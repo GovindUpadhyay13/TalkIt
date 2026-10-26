@@ -131,10 +131,13 @@ function createWindow() {
 
   win.once("ready-to-show", () => win.show());
 
-  // Closing the window cleanly quits the app so background processes and ports are properly freed.
-  win.on("close", () => {
-    isQuitting = true;
-    app.quit();
+  // Closing the main window transitions to the upper notch toggle so TalkIt voice stays active in the background.
+  win.on("close", (e) => {
+    if (!isQuitting) {
+      e.preventDefault();
+      applyWindowMode("notch");
+      return;
+    }
   });
 
   win.on("closed", () => {
@@ -470,30 +473,22 @@ function broadcastConfig() {
   }
 }
 
-// Re-broadcast the latest session snapshot to view-only surfaces, and show/hide
-// the overlay HUD: it only appears while the agent is actively working (or has a
-// live action hint), so it's invisible at rest.
+// Re-broadcast the latest session snapshot to view-only surfaces.
+// The upper toggle (notchWindow) is the single unified toggle that displays all changes.
+// We do not pop up another separate overlay window.
 function broadcastSessionState(state: SessionState) {
   latestSessionState = state;
-  const busy =
-    state.status === "thinking" ||
-    state.status === "speaking" ||
-    state.status === "writing" ||
-    state.status === "paused" ||
-    state.activity.length > 0;
+  // Send state to notchWindow (the upper toggle)
+  if (notchWindow && !notchWindow.isDestroyed()) {
+    notchWindow.webContents.send(IPC.sessionChanged, state);
+  }
+  // Ensure overlayWindow does not pop up as a duplicate toggle
   const overlay = overlayWindow;
   if (overlay && !overlay.isDestroyed()) {
     overlay.webContents.send(IPC.sessionChanged, state);
-    if (busy && !overlay.isVisible()) {
-      positionOverlay(overlay);
-      overlay.showInactive(); // never steals focus from the app being controlled
-    } else if (!busy && overlay.isVisible()) {
+    if (overlay.isVisible()) {
       overlay.hide();
     }
-  }
-  // The notch bar reflects status/caption live whenever it's on screen.
-  if (notchWindow && !notchWindow.isDestroyed()) {
-    notchWindow.webContents.send(IPC.sessionChanged, state);
   }
 }
 
@@ -596,8 +591,7 @@ function registerIpc() {
   });
 
   ipcMain.on("window:close", () => {
-    isQuitting = true;
-    app.quit();
+    applyWindowMode("notch");
   });
 
   ipcMain.on("notch:close", () => {
@@ -812,19 +806,21 @@ function registerIpc() {
 }
 
 function registerPushToTalkHotkey() {
-  // Ctrl+Win shortcut (Wispr Flow trigger). Super represents the Windows key on Windows.
-  const accelerators = ["Control+Super", "CommandOrControl+Super"];
+  // Global shortcut for Wispr Flow transcription trigger.
+  // Note: Windows globalShortcut does not accept 'Super'. Use valid Windows accelerators.
+  const accelerators = ["Control+Shift+Space", "Control+Alt+Space", "Alt+Space"];
   for (const accelerator of accelerators) {
     try {
-      if (globalShortcut.isRegistered(accelerator)) globalShortcut.unregister(accelerator);
+      if (globalShortcut.isRegistered(accelerator)) continue;
       const registered = globalShortcut.register(accelerator, () => {
         mainWindow?.webContents.send(IPC.pushToTalk);
       });
       if (registered) {
         console.log(`[TalkIt] Registered Wispr Flow transcription hotkey: ${accelerator}`);
+        break;
       }
-    } catch (err) {
-      console.warn(`[TalkIt] Could not register ${accelerator}:`, err);
+    } catch {
+      // ignore
     }
   }
 }

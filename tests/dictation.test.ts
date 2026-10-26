@@ -91,4 +91,27 @@ describe("Wispr Flow — Flow Control & Transcription Parsing", () => {
     assert.equal(isWakeCommand("talkit"), true);
     assert.equal(isWakeCommand("hello assistant"), false);
   });
+
+  it("detects 'execution mode' and extracts task for desktop implementation", () => {
+    const res1 = parseWisprFlowChunk("Hey TalkIt, execution mode open notepad and write hello");
+    assert.equal(res1.type, "execute");
+    assert.equal(res1.task, "open notepad and write hello");
+
+    const res2 = parseWisprFlowChunk("execution mode search Google for today's weather");
+    assert.equal(res2.type, "execute");
+    assert.equal(res2.task, "search Google for today's weather");
+
+    const res3 = parseWisprFlowChunk("Hey TalkIt, execution mode");
+    assert.equal(res3.type, "execute");
+    assert.equal(res3.task, "");
+
+    const res4 = parseWisprFlowChunk("Please transcribe this sentence execution mode open calculator");
+    assert.equal(res4.type, "execute");
+    assert.equal(res4.textBefore, "Please transcribe this sentence");
+    assert.equal(res4.task, "open calculator");
+
+    const res5 = parseWisprFlowChunk("typing mode");
+    assert.equal(res5.type, "switch_typing");
+  });
 });
+

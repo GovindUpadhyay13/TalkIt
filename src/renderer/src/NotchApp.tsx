@@ -49,16 +49,17 @@ export function NotchApp() {
 
   const status = (state?.status ?? "idle") as DexStatus;
   // Show the text *as it's spoken*: the current sentence of `spokenCaption`
-  // (which tracks TTS playback, lagging the faster token stream). It reads from
-  // the start and advances sentence-by-sentence, like live captions — rather
-  // than the full reply racing ahead, or the accumulated text scrolling its tail.
-  // While listening, show the user's live transcription instead.
+  // or liveCaption during transcription, pause, execution, and listening.
   const caption =
     status === "thinking" || status === "speaking"
-      ? currentSentence(state?.spokenCaption || "")
+      ? (state?.liveCaption || currentSentence(state?.spokenCaption || "") || "Executing…")
       : status === "active_listening" || status === "follow_up_listening"
-        ? state?.liveCaption || ""
-        : "";
+        ? (state?.liveCaption || "Listening…")
+        : status === "writing"
+          ? (state?.liveCaption || "Transcribing (Wispr Flow)…")
+          : status === "paused"
+            ? (state?.liveCaption || "Whisper Paused · Say 'TalkIt continue'")
+            : "";
 
   // Completed tool results that actually have a card (weather/clock/web-search).
   // Label-only tools (e.g. computer/open) are excluded so the notch doesn't open

@@ -10,12 +10,11 @@ import type { SessionToolInvocation } from "../../../main/ipc/channels";
 // Notch sizing (px). The window stays screen-centered, so a fixed center gap
 // always lands under the physical laptop notch and the two wings (flex-1, equal
 // share) keep it centered at any width.
-const NOTCH_GAP = 190; // reserved center gap ≈ physical notch width
-const COMPACT_WIDTH = 200; // at rest: status indicator + mic, no text
-const WIDE_WIDTH = 420; // expanded for a caption / controls / type field
+const COMPACT_WIDTH = 220; // at rest: status indicator + mic, no text
+const WIDE_WIDTH = 480; // expanded for caption / controls / type field
 const BAR_H = 44; // the always-visible bar
-const CARD_H = 80; // body region for a tool-result card'
-const CAPTION_H = 36; // body region for a caption
+const CARD_H = 80; // body region for a tool-result card
+const CAPTION_H = 34; // body region for a caption
 const TYPE_H = 42; // the type field, revealed on hover/focus
 
 // The notch bar's presentation. It fills its transparent, screen-centered host
@@ -60,12 +59,6 @@ export function CompactBar({
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Expand while the pointer is anywhere over the notch (bar OR the revealed
-  // field — it's one window, so moving between them stays "hovered"), or while
-  // pinned by summon. Expansion is NOT tied to input focus: an incidentally
-  // focused field (e.g. on an empty desktop, where nothing blurs it) must not
-  // keep it open. Collapse half a second after hover drops so a quick pointer
-  // drift doesn't snap it shut.
   const hasText = value.trim().length > 0;
   const rawExpanded = hovered || pinned || hasText;
   const [expanded, setExpanded] = useState(false);
@@ -81,17 +74,23 @@ export function CompactBar({
 
   const hasCard = toolInvocations.length > 0;
   const hasCaption = caption.length > 0;
+  const isBusy =
+    status === "writing" ||
+    status === "paused" ||
+    status === "thinking" ||
+    status === "speaking" ||
+    status === "active_listening" ||
+    status === "follow_up_listening";
 
-  // Drive the host window. Width is two-tier (compact at rest, wide when there's
-  // something to show) so the centered gap stays under the physical notch; height
-  // grows downward for the card + type field. The window animates between sizes.
-  const width = hasCard || expanded ? WIDE_WIDTH : COMPACT_WIDTH;
+  // Drive the host window. Width is two-tier (compact at rest, wide when active/expanded)
+  // so the upper toggle expands smoothly to show all changes.
+  const width = hasCard || expanded || hasCaption || isBusy ? WIDE_WIDTH : COMPACT_WIDTH;
   const height = BAR_H + (hasCard ? CARD_H : 0) + (hasCaption ? CAPTION_H : 0) + (expanded ? TYPE_H : 0);
   useEffect(() => {
     window.opendex.setNotchSize(width, height);
   }, [width, height]);
 
-  // The summon hotkey (⌥Space) opens it without a pointer — pin it open + focus
+  // The summon hotkey opens it without a pointer — pin it open + focus
   // the field so the user can type immediately, Spotlight-style.
   useEffect(() => {
     const reveal = () => {
@@ -103,10 +102,7 @@ export function CompactBar({
     return () => window.removeEventListener("opendex:summon", reveal);
   }, []);
 
-  // Reset to collapsed whenever the notch window is shown or hidden, or loses
-  // focus. The notch is shown with showInactive (never focused) and can hide
-  // while the cursor is still over it — so onMouseLeave doesn't reliably fire and
-  // `hovered` would get stuck. A real hover re-expands via onMouseEnter.
+  // Reset to collapsed whenever the notch window is shown or hidden, or loses focus.
   useEffect(() => {
     const collapse = () => {
       setHovered(false);
@@ -134,39 +130,45 @@ export function CompactBar({
     setPinned(false); // close after sending (stays open if still hovered)
   };
 
-  // The notch is shown unfocused (showInactive), so keystrokes only reach it once
-  // it has OS keyboard focus. Focus when the pointer reaches the type field (a
-  // deliberate move onto it) — so you can type without a click, but merely
-  // glancing at / hovering the bar never steals focus from the foreground app.
-  const focusField = () => {
-    window.opendex.focusNotch();
-    inputRef.current?.focus();
-  };
-
   const canInteract = status !== "unsupported";
 
-  // Icon buttons are mouse-only (tabIndex -1) so the notch never auto-focuses one
-  // when the window is shown — which left the mic with a persistent focus ring.
+  // Icon buttons are mouse-only (tabIndex -1)
   const iconButton =
-    "rounded-full text-muted-foreground hover:text-foreground cursor-pointer";
+    "rounded-full text-muted-foreground hover:text-foreground cursor-pointer transition-colors";
 
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="flex h-screen w-screen flex-col overflow-hidden rounded-b-2xl bg-black"
+      className="flex h-screen w-screen flex-col overflow-hidden rounded-b-2xl bg-black border border-white/[0.08] shadow-2xl"
     >
-      {/* Top bar: equal-share wings (so the fixed center gap stays centered under
-          the physical notch) — status indicator + optional caption on the left,
-          controls on the right. */}
-      <div className="flex w-full h-10 shrink-0 items-start pl-2 pr-2">
-        <div className="flex h-9 min-w-0 flex-1 items-center justify-start pl-3 gap-2">
+      {/* Top bar: Left indicator + status pill, Right action controls */}
+      <div className="flex w-full h-11 shrink-0 items-center justify-between px-3 bg-black/90 backdrop-blur-md">
+        <div className="flex items-center gap-2 min-w-0">
           <StatusIndicator status={status} />
+          <span
+            className={cn(
+              "text-[11px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full transition-all duration-200",
+              status === "writing"
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                : status === "paused"
+                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                  : status === "thinking"
+                    ? "bg-sky-500/20 text-sky-400 border border-sky-500/30 animate-pulse"
+                    : "text-muted-foreground",
+            )}
+          >
+            {status === "writing"
+              ? "Transcribing"
+              : status === "paused"
+                ? "Paused"
+                : status === "thinking"
+                  ? "Executing"
+                  : agentName || "TalkIt"}
+          </span>
         </div>
 
-        <div className="shrink-0 h-9" style={{ width: NOTCH_GAP }} aria-hidden />
-
-        <div className="flex flex-1 h-9 items-center justify-start gap-1">
+        <div className="flex items-center gap-1">
           <AnimatePresence>
             {canInteract && (
               <motion.div
@@ -186,7 +188,7 @@ export function CompactBar({
                   title={isMuted ? "On standby — click to resume" : "Listening — click to stand by"}
                   className={iconButton}
                 >
-                  {isMuted ? <MicOff /> : <Mic />}
+                  {isMuted ? <MicOff className="size-3.5" /> : <Mic className="size-3.5" />}
                 </Button>
               </motion.div>
             )}
@@ -208,7 +210,7 @@ export function CompactBar({
                   title="Expand to full window"
                   className={iconButton}
                 >
-                  <Maximize2 />
+                  <Maximize2 className="size-3.5" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -218,7 +220,7 @@ export function CompactBar({
                   aria-label="Settings"
                   className={iconButton}
                 >
-                  <Settings />
+                  <Settings className="size-3.5" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -229,7 +231,7 @@ export function CompactBar({
                   title="Close overlay"
                   className={cn(iconButton, "hover:text-destructive")}
                 >
-                  <X />
+                  <X className="size-3.5" />
                 </Button>
               </motion.div>
             )}
@@ -237,15 +239,15 @@ export function CompactBar({
         </div>
       </div>
 
-      {/* Speech */}
+      {/* Speech / Live Caption */}
       <AnimatePresence>
         {hasCaption && (
           <motion.div
             key="caption"
-            className="min-w-0 truncate text-[13px] mb-2 text-foreground/80 px-3 py-1"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            className="min-w-0 truncate text-[12.5px] text-foreground/90 px-3.5 py-1 font-medium select-none"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
           >
             {caption}
