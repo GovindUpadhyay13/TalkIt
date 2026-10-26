@@ -6,7 +6,7 @@
 
 const WAIT_PATTERN = /(?:^|\b)(?:whisper\s*wait|whisper,\s*wait|whisper\s*weight)\b/i;
 const RESUME_PATTERN = /(?:^|\b)(?:talk\s*it\s+continue|talkit\s+continue|continue|resume)\b/i;
-const WAKE_PATTERN = /\b(?:hey\s+)?(?:talk\s*it|talkit|target|take\s*it|hate\s+or\s+get)\b/i;
+const WAKE_PATTERN = /\b(?:hey\s+)?talk\s*it\b/i;
 const EXECUTION_MODE_PATTERN = /(?:^|\b)(?:execution\s+mode|execute\s+mode|agent\s+mode|command\s+mode)\b/i;
 const TYPING_MODE_PATTERN = /(?:^|\b)(?:typing\s+mode|type\s+mode|dictation\s+mode|transcription\s+mode)\b/i;
 
@@ -21,7 +21,7 @@ export interface WisprParseResult {
  * Strips leading wake words ("hey talkit", "talkit") from transcribed utterances.
  */
 export function stripWakeWord(text: string): string {
-  return text.replace(/^(hey\s+)?(?:talk\s*it|talkit|target|take\s*it)[,.]?\s*/i, "").trim();
+  return text.replace(/^(hey\s+)?talk\s*it[,.]?\s*/i, "").trim();
 }
 
 /**

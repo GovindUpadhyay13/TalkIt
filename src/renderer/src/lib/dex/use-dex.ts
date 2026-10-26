@@ -75,9 +75,8 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function buildWakeRegex(word: string): RegExp {
-  const cleaned = word.trim() || "talkit";
-  return new RegExp(`\\b(?:hey\\s+)?(?:talk\\s*it|talkit|target|take\\s*it|hate\\s+or\\s+get|${escapeRegExp(cleaned)})\\b`, "i");
+function buildWakeRegex(_word?: string): RegExp {
+  return /\bhey\s+talk\s*it\b/i;
 }
 
 // Trailing silence (after speech is heard) that ends an utterance and stops
@@ -1124,13 +1123,10 @@ export function useDex(options: UseDexOptions): UseDexResult {
             wakeEngineRef.current = engine;
             await engine.start(onWake);
           } catch (err) {
-            console.warn("[TalkIt] Vosk wake engine failed to start", err);
+            console.warn("[TalkIt] Vosk wake engine failed to start, using fallback spotter", err);
             armWebSpeechSpotter();
           }
         })();
-
-        // 2. Also arm Web Speech spotter in parallel so recognition is instantaneous
-        armWebSpeechSpotter();
         return;
       }
 

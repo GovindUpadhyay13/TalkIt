@@ -22,39 +22,23 @@ export class VoskWakeEngine implements WakeEngine {
   ) {}
 
   async start(onWake: () => void): Promise<void> {
+    // Strictly listen for "Hey TalkIt" only — never trigger on generic words like "take it", "target", or "computer"
     const wakePhrases = [
       "hey talk it",
-      "talk it",
-      "hey talk",
-      "talk",
-      "hey target",
-      "target",
-      "hey take it",
-      "take it",
       "hey talkit",
-      "talkit",
-      "computer",
     ];
     try {
       this.onLoading?.(true);
       const model = await loadVoskModel(this.modelUrl);
       this.onLoading?.(false);
-      // Constrain recognition to the hardcoded wake words for accuracy + speed.
+      // Constrain recognition strictly to "hey talk it" + "[unk]" to prevent false triggers from videos or room noise.
       this.rec = new model.KaldiRecognizer(16000, JSON.stringify([...wakePhrases, "[unk]"]));
+      const STRICT_WAKE_REGEX = /\bhey\s+talk\s*it\b/i;
+
       const matches = (text?: string) => {
         if (!text) return false;
-        const lower = text.toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ");
-        return (
-          lower.includes("hey talk") ||
-          lower.includes("talk it") ||
-          lower.includes("talkit") ||
-          lower.includes("hey target") ||
-          lower.includes("target") ||
-          lower.includes("hate or get") ||
-          lower.includes("hey take") ||
-          lower.includes("take it") ||
-          lower.includes("computer")
-        );
+        const cleaned = text.trim();
+        return STRICT_WAKE_REGEX.test(cleaned);
       };
 
       const trigger = () => {
@@ -62,6 +46,7 @@ export class VoskWakeEngine implements WakeEngine {
         this.fired = true;
         onWake();
       };
+      // Only fire on confirmed result or full phrase to prevent false triggers on background audio/videos
       this.rec.on("result", (m) => {
         if (matches(m.result?.text)) trigger();
       });
