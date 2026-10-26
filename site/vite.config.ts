@@ -6,5 +6,8 @@ import tailwindcss from "@tailwindcss/vite";
 // under a project-pages sub-path (GovindUpadhyay13.github.io/TalkIt).
 export default defineConfig({
   base: "./",
+  server: {
+    port: 3000,
+  },
   plugins: [react(), tailwindcss()],
 });
