@@ -131,12 +131,10 @@ function createWindow() {
 
   win.once("ready-to-show", () => win.show());
 
-  // Closing the window hides it cleanly to keep the assistant available in the background
-  // without popping up the intrusive notch overlay.
-  win.on("close", (event) => {
-    if (isQuitting) return;
-    event.preventDefault();
-    win.hide();
+  // Closing the window cleanly quits the app so background processes and ports are properly freed.
+  win.on("close", () => {
+    isQuitting = true;
+    app.quit();
   });
 
   win.on("closed", () => {
@@ -596,7 +594,8 @@ function registerIpc() {
   });
 
   ipcMain.on("window:close", () => {
-    mainWindow?.hide();
+    isQuitting = true;
+    app.quit();
   });
 
   ipcMain.on("notch:close", () => {
