@@ -109,8 +109,10 @@ export async function resolveModel(config: OpenDexConfig): Promise<LanguageModel
         );
       }
       const modelId = model || "gemini-2.5-flash";
-      const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
-      return createGoogleGenerativeAI({ apiKey })(modelId) as unknown as LanguageModel;
+      return createOpenAI({
+        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+        apiKey,
+      })(modelId);
     }
     case "openai":
       if (!process.env.OPENAI_API_KEY) throw new Error("no OpenAI API key is set");
