@@ -57,4 +57,25 @@ describe("Talkit Execute — Desktop Automation & Skills", () => {
     assert.equal(listRes.ok, true);
     assert.ok((listRes.count ?? 0) >= 1);
   });
+
+  it("executeDirectCommand parses and matches calculator and desktop app intents", async () => {
+    const { executeDirectCommand } = await import("../src/main/agent/direct-executor");
+    
+    const calcRes = await executeDirectCommand("open calculator");
+    assert.equal(calcRes.matched, true);
+    assert.equal(calcRes.action, "open_app");
+    assert.ok(calcRes.reply?.includes("Calculator"));
+
+    const notepadRes = await executeDirectCommand("launch notepad");
+    assert.equal(notepadRes.matched, true);
+    assert.equal(notepadRes.action, "open_app");
+    assert.ok(notepadRes.reply?.includes("Notepad"));
+
+    const webRes = await executeDirectCommand("open youtube.com");
+    assert.equal(webRes.matched, true);
+    assert.equal(webRes.action, "open_url");
+
+    const nonDirectRes = await executeDirectCommand("write a python script to calculate fibonacci");
+    assert.equal(nonDirectRes.matched, false);
+  });
 });

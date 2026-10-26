@@ -24,6 +24,7 @@ import {
 import { streamChat } from "./agent/chat";
 import { resolveModel, checkAppleAvailability, probeOllama } from "./agent/llm/resolve-model";
 import { insertDictatedText } from "./dictation/text-injector";
+import { executeDirectCommand } from "./agent/direct-executor";
 import {
   startApprovalServer,
   setApprovalNotifier,
@@ -750,6 +751,11 @@ function registerIpc() {
   // Talkit Write: Insert dictated text at the current cursor
   ipcMain.handle(IPC.dictationInsert, async (_event, text: string) => {
     return insertDictatedText(text);
+  });
+
+  // Talkit Execute: Instant direct desktop action execution without cloud LLM round-trip
+  ipcMain.handle(IPC.systemDirectExecute, async (_event, command: string) => {
+    return executeDirectCommand(command);
   });
 
   // Permission gate: the renderer answers a sensitive-tool prompt or external agent request.

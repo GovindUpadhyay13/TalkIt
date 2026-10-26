@@ -81,9 +81,9 @@ function buildWakeRegex(word: string): RegExp {
 }
 
 // Trailing silence (after speech is heard) that ends an utterance and stops
-// recording. Configured to exactly 2 seconds of continuous silence.
-const END_SILENCE_MS = 2000;
-const CONTINUOUS_SILENCE_TIMEOUT_MS = 2000;
+// recording. Configured to exactly 1 second of continuous silence.
+const END_SILENCE_MS = 1000;
+const CONTINUOUS_SILENCE_TIMEOUT_MS = 1000;
 // How long to wait for the user to start speaking initially before giving up quietly.
 const COMMAND_NO_SPEECH_MS = 4000;
 const FOLLOW_UP_NO_SPEECH_MS = 4000;
@@ -511,6 +511,38 @@ export function useDex(options: UseDexOptions): UseDexResult {
         }
         tts.enqueue(text);
       };
+
+      // Direct desktop command execution (instant OS action without cloud LLM round-trip)
+      try {
+        const direct = await window.opendex.executeDirectCommand(userText);
+        if (direct?.matched && direct?.ok) {
+          const reply = direct.reply || `Opened ${userText}.`;
+          updateLastAssistant(reply);
+          messagesRef.current.push({ role: "assistant", content: reply });
+          setLiveCaption(`⚡ ${reply}`);
+          setSpokenCaption(reply);
+          setStatus("speaking");
+          speak(reply);
+
+          // Wait for reply speech to drain, then return to wake
+          const checkDrain = () =>
+            new Promise<void>((resolve) => {
+              const tick = () => {
+                if (!tts.isSpeaking) return resolve();
+                setTimeout(tick, 100);
+              };
+              tick();
+            });
+          await checkDrain();
+          await new Promise((r) => setTimeout(r, 400));
+          runningCommandRef.current = null;
+          startModeRef.current?.("wake");
+          return;
+        }
+      } catch (err) {
+        console.warn("[TalkIt] direct execute check failed, falling back to LLM", err);
+      }
+
       const buffer = createSentenceBuffer();
       const abortController = new AbortController();
       let assistantText = "";
@@ -1404,7 +1436,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
         resetSilenceTimer();
       };
       rec.onspeechend = () => {
-        setTimeout(() => settle(finalTranscript), 2000);
+        setTimeout(() => settle(finalTranscript), END_SILENCE_MS);
       };
       rec.onend = () => {
         if (!resolved) settle(finalTranscript);

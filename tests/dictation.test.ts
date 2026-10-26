@@ -112,6 +112,10 @@ describe("Wispr Flow — Flow Control & Transcription Parsing", () => {
 
     const res5 = parseWisprFlowChunk("typing mode");
     assert.equal(res5.type, "switch_typing");
+
+    const res6 = parseWisprFlowChunk("Hey TalkIt, open calculator");
+    assert.equal(res6.type, "execute");
+    assert.equal(res6.task, "open calculator");
   });
 });
 

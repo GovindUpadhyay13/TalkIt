@@ -64,6 +64,15 @@ export function parseWisprFlowChunk(rawText: string): WisprParseResult {
     return { type: "switch_typing" };
   }
 
+  // Direct desktop actions (e.g. "open calculator", "launch notepad", "open chrome") are recognized as execute
+  const directActionMatch = stripped.match(/^(?:open|launch|start|run)\s+(?:the\s+)?([a-z0-9._ -]+)$/i);
+  if (directActionMatch) {
+    return {
+      type: "execute",
+      task: stripped,
+    };
+  }
+
   // Check for pause command ("Whisper wait")
   const waitMatch = stripped.match(WAIT_PATTERN);
   if (waitMatch && waitMatch.index !== undefined) {

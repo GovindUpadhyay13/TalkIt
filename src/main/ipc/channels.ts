@@ -43,6 +43,8 @@ export const IPC = {
   llmOllamaProbe: "llm:ollama-probe",
   // Dictation: renderer requests text insertion at active cursor (Talkit Write)
   dictationInsert: "dictation:insert",
+  // Direct desktop execution: renderer executes immediate OS actions without LLM latency
+  systemDirectExecute: "system:direct-execute",
   // main → renderer event: global push-to-talk hotkey pressed
   pushToTalk: "push-to-talk",
   // main → renderer event: global emergency-stop hotkey pressed

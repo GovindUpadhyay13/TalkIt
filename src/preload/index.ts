@@ -205,6 +205,11 @@ const opendex = {
     return ipcRenderer.invoke(IPC.dictationInsert, text);
   },
 
+  /** Execute direct desktop/system command without requiring an LLM (Talkit Execute). */
+  executeDirectCommand(command: string): Promise<{ matched: boolean; ok?: boolean; reply?: string; action?: string; error?: string }> {
+    return ipcRenderer.invoke(IPC.systemDirectExecute, command);
+  },
+
   /** Subscribe to the global push-to-talk hotkey. Returns an unsubscribe fn. */
   onPushToTalk(handler: () => void): () => void {
     const listener = () => handler();
