@@ -113,9 +113,15 @@ describe("Wispr Flow — Flow Control & Transcription Parsing", () => {
     const res5 = parseWisprFlowChunk("typing mode");
     assert.equal(res5.type, "switch_typing");
 
-    const res6 = parseWisprFlowChunk("Hey TalkIt, open calculator");
-    assert.equal(res6.type, "execute");
-    assert.equal(res6.task, "open calculator");
+    // In normal typing mode without "execution mode", commands are transcribed rather than executed
+    const res6 = parseWisprFlowChunk("open calculator");
+    assert.equal(res6.type, "transcription");
+    assert.equal(res6.text, "open calculator");
+
+    // With execution mode, commands are executed
+    const res7 = parseWisprFlowChunk("Hey TalkIt, execution mode open calculator");
+    assert.equal(res7.type, "execute");
+    assert.equal(res7.task, "open calculator");
   });
 });
 
