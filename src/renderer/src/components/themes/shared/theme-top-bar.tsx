@@ -53,7 +53,14 @@ export function ThemeTopBar({
       </div>
       <div className="titlebar-no-drag pointer-events-auto relative z-40 flex shrink-0 items-center gap-2">
         {showStatus && (
-          <StatusPill status={status} className="hidden sm:inline-flex" />
+          <button
+            type="button"
+            onClick={status === "error" ? onOpenSettings : undefined}
+            className={status === "error" ? "cursor-pointer transition-transform hover:scale-105 active:scale-95" : "cursor-default"}
+            title={status === "error" ? "Click to open Settings and check Gemini API key" : undefined}
+          >
+            <StatusPill status={status} className="hidden sm:inline-flex" />
+          </button>
         )}
         {onToggleMute && (
           <Button

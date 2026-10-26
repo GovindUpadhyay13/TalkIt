@@ -103,6 +103,32 @@ export function MinimalShell({
           </div>
         )}
 
+        {status === "error" && (
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-5 py-3 text-center max-w-md animate-fade-in shadow-lg">
+            <p className="text-xs text-destructive-foreground font-medium">
+              Google Gemini API key required or action failed. Please configure your GEMINI_API_KEY in Settings.
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={props.onOpenSettings}
+                className="rounded-full bg-destructive text-destructive-foreground px-4 py-1.5 text-xs font-semibold hover:opacity-90 transition-all cursor-pointer shadow-sm"
+              >
+                Open Settings (⚙️)
+              </button>
+              {props.onNewConversation && (
+                <button
+                  type="button"
+                  onClick={props.onNewConversation}
+                  className="rounded-full border border-border bg-background/50 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {briefingActive && (
           <div className="text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
             Pulling up your dashboards…

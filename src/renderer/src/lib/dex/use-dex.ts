@@ -604,11 +604,32 @@ export function useDex(options: UseDexOptions): UseDexResult {
           // what it already did (and won't re-trigger gated actions next turn).
           if (respMessages.length) messagesRef.current.push(...respMessages);
         }
-      } catch (err) {
+      } catch (err: any) {
         if (abortController.signal.aborted) {
           bargedIn = true;
         } else {
-          console.error("[opendex] chat error", err);
+          console.error("[TalkIt] chat error", err);
+          const rawMessage = (err?.message || String(err || "")).replace(/^Error:\s*/, "");
+          let friendlyMessage = rawMessage;
+          if (
+            rawMessage.includes("No Gemini API key") ||
+            rawMessage.includes("GEMINI_API_KEY") ||
+            rawMessage.includes("Google AI Studio")
+          ) {
+            friendlyMessage =
+              "⚠️ Google Gemini API key required: Please open Settings (gear icon in the top right) → Language Model, and enter your GEMINI_API_KEY from Google AI Studio (https://aistudio.google.com/apikey).";
+          } else if (
+            rawMessage.includes("API key not valid") ||
+            rawMessage.includes("API_KEY_INVALID")
+          ) {
+            friendlyMessage =
+              "⚠️ Invalid Google Gemini API key: Please verify your GEMINI_API_KEY in Settings (gear icon) → Language Model.";
+          } else if (rawMessage) {
+            friendlyMessage = `⚠️ Error: ${rawMessage}`;
+          }
+
+          updateLastAssistant(friendlyMessage);
+          messagesRef.current.push({ role: "assistant", content: friendlyMessage });
           setStatus("error");
           setBriefingActive(false);
           stopBargeMonitor();
@@ -1385,7 +1406,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
   const pushToTalk = useCallback(() => {
     if (mutedRef.current) return;
     const s = statusRef.current;
-    if (s === "listening_wake" || s === "idle" || s === "unsupported") {
+    if (s === "listening_wake" || s === "idle" || s === "unsupported" || s === "error") {
       startModeRef.current?.("command");
     }
   }, []);
@@ -1508,8 +1529,8 @@ export function useDex(options: UseDexOptions): UseDexResult {
           },
         });
       } catch (err) {
-        console.error("[opendex] mic permission denied", err);
-        setStatus("error");
+        console.warn("[TalkIt] mic permission or device unavailable", err);
+        setStatus("idle");
         return;
       }
     }
@@ -1530,7 +1551,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
   const submitText = useCallback(
     (raw: string) => {
       const text = raw.trim();
-      if (!text || statusRef.current === "error") return;
+      if (!text) return;
 
       restartGuardRef.current = true;
       clearTimers();
@@ -1807,7 +1828,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
 
   const canPushToTalk =
     !isMuted &&
-    (status === "listening_wake" || status === "idle" || status === "unsupported" || options.wakeMode === "manual");
+    (status === "listening_wake" || status === "idle" || status === "unsupported" || status === "error" || options.wakeMode === "manual");
 
   return {
     status,
