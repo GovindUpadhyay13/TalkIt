@@ -19,6 +19,7 @@ import { CloudSttEngine } from "./engines/cloud-stt";
 import { RealtimeVoiceSession } from "./realtime/realtime-session";
 import type { SttEngine, WakeEngine } from "./engines/types";
 import type { DexStatus, TranscriptTurn } from "./state";
+import { parseWisprFlowChunk, isWisprResumeCommand } from "./wispr-flow";
 import { formatToolCall } from "../format-tool-call";
 import type { ToolInvocation } from "@skills/tool-view";
 import {
@@ -75,8 +76,8 @@ function escapeRegExp(s: string): string {
 }
 
 function buildWakeRegex(word: string): RegExp {
-  const cleaned = word.trim() || "dex";
-  return new RegExp(`\\b${escapeRegExp(cleaned)}\\b`, "i");
+  const cleaned = word.trim() || "talkit";
+  return new RegExp(`\\b(?:hey\\s+)?(?:talk\\s*it|${escapeRegExp(cleaned)})\\b`, "i");
 }
 
 // Trailing silence (after speech is heard) that ends an utterance so we can
@@ -1032,19 +1033,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
           // A wake detection queued just before mute can fire after the engine
           // was torn down. Ignore it so voice never re-engages while on standby.
           if (mutedRef.current) return;
-          const briefing = !hasBriefedRef.current && opts.greetingEnabled;
-          if (optionsRef.current.voiceMode === "realtime") {
-            if (briefing) hasBriefedRef.current = true;
-            realtimePendingRef.current = { briefing };
-            startModeRef.current?.("command");
-            return;
-          }
-          if (briefing) {
-            hasBriefedRef.current = true;
-            void runCommand("Give me my briefing.", { mode: "briefing" });
-          } else {
-            startModeRef.current?.("command");
-          }
+          startModeRef.current?.("command");
         };
 
         if (opts.wakeMode === "manual") {
@@ -1106,32 +1095,9 @@ export function useDex(options: UseDexOptions): UseDexResult {
           wakeNetworkFailuresRef.current = 0;
           const match = combined.match(buildWakeRegex(optionsRef.current.wakeWord));
           if (match && match.index !== undefined) {
-            const trailing = combined.slice(match.index + match[0].length).trim();
             resultBaseline = event.results.length;
-            const briefing =
-              !hasBriefedRef.current && optionsRef.current.greetingEnabled;
-            if (optionsRef.current.voiceMode === "realtime") {
-              if (briefing) hasBriefedRef.current = true;
-              // Words spoken after the wake word become the opening message.
-              realtimePendingRef.current = {
-                briefing,
-                initialText: trailing.length >= 3 ? trailing : undefined,
-              };
-              startModeRef.current?.("command");
-              return;
-            }
-            // The first time the operator wakes the assistant, deliver the
-            // proactive greeting (if enabled) instead of listening for a command.
-            if (briefing) {
-              hasBriefedRef.current = true;
-              stopRecognition();
-              void runCommand("Give me my briefing.", { mode: "briefing" });
-            } else if (trailing.length >= 3) {
-              stopRecognition();
-              void runCommand(trailing);
-            } else {
-              startModeRef.current?.("command");
-            }
+            stopRecognition();
+            startModeRef.current?.("command");
           }
         };
         rec.onerror = (event) => {
@@ -1197,9 +1163,9 @@ export function useDex(options: UseDexOptions): UseDexResult {
         void startRealtimeConversation(pending ?? {});
         return;
       }
-      setStatus(mode === "follow_up" ? "follow_up_listening" : "active_listening");
+      setStatus("writing");
       setLiveCaption("");
-      const noSpeechMs =
+      let noSpeechMs =
         mode === "follow_up" ? FOLLOW_UP_NO_SPEECH_MS : COMMAND_NO_SPEECH_MS;
       vlog("capture:start", {
         mode,
@@ -1208,9 +1174,9 @@ export function useDex(options: UseDexOptions): UseDexResult {
         noSpeechMs,
       });
 
-      // Cloud / local STT: capture an utterance via the chosen engine, then run
-      // it. (openai = main-process Whisper; whisper-local / vosk-local = offline
-      // WASM in the renderer.)
+      // Wispr Flow transcription pipeline using Whisper (local or cloud).
+      // Offline Whisper-local (Xenova WASM) is the default; transcribes seamlessly
+      // directly to the cursor at the active window.
       if (opts.sttProvider !== "webspeech") {
         const ac = new AbortController();
         sttAbortRef.current = ac;
@@ -1218,41 +1184,103 @@ export function useDex(options: UseDexOptions): UseDexResult {
           try {
             const engine = await ensureSttEngine(opts.sttProvider, opts.whisperModel);
             if (ac.signal.aborted) return;
-            const text = await engine.capture({
-              silenceMs: END_SILENCE_MS,
-              noSpeechMs,
-              hardTimeoutMs: COMMAND_HARD_TIMEOUT_MS,
-              signal: ac.signal,
-            });
-            if (ac.signal.aborted) return;
-            const cleaned = text.trim();
-            // Empty, or no real words (Whisper can hallucinate "." / "♪" from
-            // noise) → ignore and go back to waiting.
-            if (!cleaned || !/[a-z0-9]/i.test(cleaned)) {
-              startModeRef.current?.("wake");
-              return;
-            }
-            // Echo guard for follow-ups: drop a transcript that's mostly the
-            // assistant's just-spoken words leaking back through the mic.
-            if (mode === "follow_up" && assistantWordsRef.current.size > 0) {
-              const words = cleaned
-                .toLowerCase()
-                .split(/\s+/)
-                .filter((w) => w.length > 3);
-              if (words.length > 0) {
-                const newRatio =
-                  words.filter((w) => !assistantWordsRef.current.has(w)).length /
-                  words.length;
-                if (newRatio < FOLLOW_UP_ECHO_REJECT_RATIO) {
-                  startModeRef.current?.("wake");
-                  return;
+            setStatus("writing");
+            setLiveCaption("Transcribing (Wispr Flow)…");
+
+            let isPaused = false;
+
+            while (!ac.signal.aborted && !mutedRef.current) {
+              if (isPaused) {
+                // "Whisper wait" paused state:
+                // Stop transcribing without cutting off the session.
+                // Let the user type on the keyboard, waiting for "TalkIt continue".
+                setStatus("paused");
+                setLiveCaption("Whisper paused. Type on keyboard. Say 'TalkIt continue' to resume.");
+
+                let resume = false;
+                try {
+                  const chunk = await engine.capture({
+                    silenceMs: 600,
+                    noSpeechMs: 30000,
+                    hardTimeoutMs: 60000,
+                    signal: ac.signal,
+                  });
+                  if (ac.signal.aborted) break;
+                  if (isWisprResumeCommand(chunk)) {
+                    resume = true;
+                  }
+                } catch {
+                  if (ac.signal.aborted) break;
                 }
+
+                if (resume) {
+                  isPaused = false;
+                  setStatus("writing");
+                  setLiveCaption("Resuming transcription…");
+                }
+                continue;
               }
+
+              // Active transcription capture
+              setStatus("writing");
+              let text = "";
+              try {
+                text = await engine.capture({
+                  silenceMs: END_SILENCE_MS,
+                  noSpeechMs,
+                  hardTimeoutMs: COMMAND_HARD_TIMEOUT_MS,
+                  signal: ac.signal,
+                });
+              } catch (err) {
+                if (ac.signal.aborted) break;
+                // If the user stops talking without "Whisper wait", end the session.
+                break;
+              }
+
+              if (ac.signal.aborted) break;
+
+              const parsed = parseWisprFlowChunk(text);
+              if (parsed.type === "empty") {
+                // Natural silence or hallucination -> end session
+                break;
+              }
+
+              if (parsed.type === "wait") {
+                if (parsed.textBefore) {
+                  setLiveCaption(parsed.textBefore);
+                  appendTurn("user", parsed.textBefore);
+                  try {
+                    await window.opendex.insertDictatedText(parsed.textBefore);
+                  } catch (err) {
+                    console.warn("[TalkIt] insertDictatedText error:", err);
+                  }
+                }
+                isPaused = true;
+                continue;
+              }
+
+              // Normal transcription: seamlessly insert into active window and update UI
+              const transcribed = parsed.text!;
+              setLiveCaption(transcribed);
+              appendTurn("user", transcribed);
+              try {
+                await window.opendex.insertDictatedText(transcribed);
+              } catch (err) {
+                console.warn("[TalkIt] insertDictatedText error:", err);
+              }
+
+              // Keep listening for continuous speech
+              noSpeechMs = COMMAND_NO_SPEECH_MS;
             }
-            void runCommand(cleaned);
+
+            // Exited loop: natural silence or aborted -> cleanly end session and return to standby
+            if (!ac.signal.aborted && !mutedRef.current) {
+              setLiveCaption("");
+              startModeRef.current?.("wake");
+            }
           } catch (err) {
             if (ac.signal.aborted) return;
-            console.error("[opendex] stt error", err);
+            console.error("[TalkIt] transcription error", err);
             startModeRef.current?.("wake");
           }
         })();
@@ -1286,10 +1314,26 @@ export function useDex(options: UseDexOptions): UseDexResult {
           chars: cleaned.length,
         });
         if (cleaned.length === 0) {
-          // Nothing heard — both command and follow-up roll back to passive wake.
+          // Nothing heard — roll back to passive wake.
           startModeRef.current?.("wake");
         } else {
-          void runCommand(cleaned);
+          const waitPattern = /(?:^|\b)(?:whisper\s*wait|whisper,\s*wait|whisper\s*weight)\b/i;
+          const waitMatch = cleaned.match(waitPattern);
+          if (waitMatch && waitMatch.index !== undefined) {
+            const beforeWait = cleaned.slice(0, waitMatch.index).trim();
+            if (beforeWait && /[a-z0-9]/i.test(beforeWait)) {
+              setLiveCaption(beforeWait);
+              appendTurn("user", beforeWait);
+              void window.opendex.insertDictatedText(beforeWait);
+            }
+            setStatus("paused");
+            setLiveCaption("Whisper paused. Type on keyboard. Say 'TalkIt continue' to resume.");
+          } else {
+            setLiveCaption(cleaned);
+            appendTurn("user", cleaned);
+            void window.opendex.insertDictatedText(cleaned);
+            startModeRef.current?.("wake");
+          }
         }
       };
 
@@ -1406,7 +1450,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
   const pushToTalk = useCallback(() => {
     if (mutedRef.current) return;
     const s = statusRef.current;
-    if (s === "listening_wake" || s === "idle" || s === "unsupported" || s === "error") {
+    if (s === "listening_wake" || s === "idle" || s === "unsupported" || s === "error" || s === "paused") {
       startModeRef.current?.("command");
     }
   }, []);
@@ -1603,7 +1647,8 @@ export function useDex(options: UseDexOptions): UseDexResult {
     if (
       s === "active_listening" ||
       s === "follow_up_listening" ||
-      s === "listening_wake"
+      s === "listening_wake" ||
+      s === "writing"
     ) {
       // Real mic loudness, with a faint floor so the viz never flatlines.
       const level = meterRef.current?.inputLevel() ?? 0;
@@ -1828,7 +1873,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
 
   const canPushToTalk =
     !isMuted &&
-    (status === "listening_wake" || status === "idle" || status === "unsupported" || status === "error" || options.wakeMode === "manual");
+    (status === "listening_wake" || status === "idle" || status === "unsupported" || status === "error" || status === "paused" || options.wakeMode === "manual");
 
   return {
     status,

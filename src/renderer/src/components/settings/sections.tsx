@@ -88,12 +88,6 @@ function AssistantSection({ data, setConfig }: SectionProps) {
         ]}
         onChange={(v) => setConfig({ assistant: { userGender: v } })}
       />
-      <TextField
-        label="Wake word"
-        hint="Used by the Web Speech wake mode."
-        value={config.assistant.wakeWord}
-        onChange={(v) => setConfig({ assistant: { wakeWord: v } })}
-      />
       <TextArea
         label="Personality (custom system prompt)"
         hint="Replaces the built-in persona. The spoken-output rules (short replies, no markdown, etc.) and your address preference are always kept. Leave blank for the default."
@@ -181,21 +175,20 @@ function VoiceInputSection({ data, setConfig, setSecret }: SectionProps) {
   const realtimeActive = config.voice.mode === "realtime";
   return (
     <>
-      <SelectField
-        label="How to start listening"
-        hint={
-          realtimeActive
-            ? "In realtime voice mode this is what connects a session."
-            : "Push-to-talk and Vosk work without any paid key."
-        }
-        value={config.voiceInput.wakeMode}
-        options={[
-          { value: "manual", label: "Push to talk (click / ⌘⇧Space)" },
-          { value: "vosk", label: "Wake word (Vosk — free, offline)" },
-          { value: "webspeech", label: "Wake word (Web Speech — browser)" },
-        ]}
-        onChange={(v) => setConfig({ voiceInput: { ...config.voiceInput, wakeMode: v } })}
-      />
+      <div className="rounded-lg border border-border/50 bg-card/40 p-3 space-y-2">
+        <div className="text-xs font-medium text-foreground/90 uppercase tracking-wider">Voice & Transcription Trigger</div>
+        <div className="text-sm flex items-center justify-between text-muted-foreground">
+          <span>Wake Word:</span>
+          <span className="font-mono text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-semibold">&ldquo;Hey TalkIt&rdquo;</span>
+        </div>
+        <div className="text-sm flex items-center justify-between text-muted-foreground">
+          <span>Instant Transcription:</span>
+          <span className="font-mono text-xs px-2 py-0.5 rounded bg-muted text-foreground">Ctrl + Win</span>
+        </div>
+        <div className="text-xs text-muted-foreground/80 pt-1 border-t border-border/40">
+          Say <span className="text-foreground font-medium">&ldquo;Whisper wait&rdquo;</span> to pause and type freely. Say <span className="text-foreground font-medium">&ldquo;TalkIt continue&rdquo;</span> to resume.
+        </div>
+      </div>
       {/* Transcription is the realtime model's job in realtime mode — these
           pipeline-only controls hide rather than sit disabled. */}
       {!realtimeActive && (

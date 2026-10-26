@@ -810,15 +810,20 @@ function registerIpc() {
 }
 
 function registerPushToTalkHotkey() {
-  // Global push-to-talk for manual wake mode. The renderer ignores it unless
-  // wakeMode === "manual".
-  const accelerator = "CommandOrControl+Shift+Space";
-  try {
-    globalShortcut.register(accelerator, () => {
-      mainWindow?.webContents.send(IPC.pushToTalk);
-    });
-  } catch (err) {
-    console.error("[opendex] failed to register push-to-talk hotkey", err);
+  // Ctrl+Win shortcut (Wispr Flow trigger). Super represents the Windows key on Windows.
+  const accelerators = ["Control+Super", "CommandOrControl+Super"];
+  for (const accelerator of accelerators) {
+    try {
+      if (globalShortcut.isRegistered(accelerator)) globalShortcut.unregister(accelerator);
+      const registered = globalShortcut.register(accelerator, () => {
+        mainWindow?.webContents.send(IPC.pushToTalk);
+      });
+      if (registered) {
+        console.log(`[TalkIt] Registered Wispr Flow transcription hotkey: ${accelerator}`);
+      }
+    } catch (err) {
+      console.warn(`[TalkIt] Could not register ${accelerator}:`, err);
+    }
   }
 }
 

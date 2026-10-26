@@ -22,15 +22,24 @@ export class VoskWakeEngine implements WakeEngine {
   ) {}
 
   async start(onWake: () => void): Promise<void> {
-    const word = this.wakeWord.trim().toLowerCase() || "computer";
+    const wakePhrases = ["hey talkit", "talkit", "hey talk it", "talk it", "computer"];
     try {
       this.onLoading?.(true);
       const model = await loadVoskModel(this.modelUrl);
       this.onLoading?.(false);
-      // Constrain recognition to the wake word for accuracy + speed.
-      this.rec = new model.KaldiRecognizer(16000, JSON.stringify([word, "[unk]"]));
-      const matches = (text?: string) =>
-        !!text && new RegExp(`\\b${word}\\b`).test(text.toLowerCase());
+      // Constrain recognition to the hardcoded wake words for accuracy + speed.
+      this.rec = new model.KaldiRecognizer(16000, JSON.stringify([...wakePhrases, "[unk]"]));
+      const matches = (text?: string) => {
+        if (!text) return false;
+        const lower = text.toLowerCase();
+        return (
+          lower.includes("hey talkit") ||
+          lower.includes("talkit") ||
+          lower.includes("hey talk it") ||
+          lower.includes("talk it") ||
+          lower.includes("computer")
+        );
+      };
 
       const trigger = () => {
         if (this.fired) return;

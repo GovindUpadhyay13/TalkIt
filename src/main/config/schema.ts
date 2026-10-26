@@ -189,8 +189,8 @@ export const DEFAULT_CONFIG: OpenDexConfig = {
     idleDisconnectSec: 10,
   },
   voiceInput: {
-    // Fast, responsive: click or press Space to talk + local Whisper transcription.
-    wakeMode: "manual",
+    // Hands-free "Hey TalkIt" wake word + local Whisper transcription (Wispr Flow)
+    wakeMode: "vosk",
     sttProvider: "whisper-local",
     whisperModel: "Xenova/whisper-base.en",
   },

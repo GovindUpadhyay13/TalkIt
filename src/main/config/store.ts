@@ -63,6 +63,10 @@ function loadConfigFile(): OpenDexConfig {
     if (!merged.skills.permissions?.open || merged.skills.permissions.open === "ask") {
       merged.skills.permissions = { ...merged.skills.permissions, open: "always" };
     }
+    if (merged.voiceInput?.wakeMode !== "vosk") {
+      merged.voiceInput = { ...merged.voiceInput, wakeMode: "vosk" };
+    }
+    merged.assistant.wakeWord = "Hey TalkIt";
     return merged;
   } catch (err) {
     console.error("[opendex config] failed to read config.json, using defaults", err);
