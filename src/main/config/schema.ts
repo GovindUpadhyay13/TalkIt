@@ -1,15 +1,15 @@
 // Shared config types + defaults. Imported by the main process (store) and,
 // for types only, by the preload/renderer through the IPC layer.
 
-export type TtsEngine = "elevenlabs" | "system";
+export type TtsEngine = "system";
 export type GreetingMode = "example" | "custom" | "none";
 /** How the assistant addresses the user. Drives honorifics ("sir"/"ma'am") and
  *  is "unspecified" by default so we never presume a gender. */
 export type UserGender = "male" | "female" | "unspecified";
-export type WakeMode = "webspeech" | "manual" | "vosk";
+export type WakeMode = "manual" | "vosk" | "webspeech";
 /** Window layout: the full themed experience, or a slim top-pinned bar. */
 export type WindowMode = "full" | "notch";
-export type SttProvider = "webspeech" | "openai" | "whisper-local" | "vosk-local";
+export type SttProvider = "gemini" | "whisper-local" | "vosk-local" | "openai" | "webspeech";
 /** How the voice session runs: `pipeline` = wake → STT → LLM → TTS (separate
  *  engines, free/local options); `realtime` = one speech-to-speech model over a
  *  WebSocket (most natural voice, needs a gateway key). */
@@ -19,18 +19,17 @@ export type VoiceMode = "pipeline" | "realtime";
  *  BYOK connection (not implemented yet). */
 export type RealtimeProvider = "gateway" | "openai";
 /** Which provider routes chat completions:
+ *  `gemini-gemma` = Google Gemini API (Gemini 2.5 / Gemma 4) Cloud;
  *  `gemma` = Google Gemma served locally via Ollama;
- *  `gemini-gemma` = Google Gemma 4 hosted via the Gemini API (Cloud);
  *  `apple` = free + on-device (macOS); `openai`/`anthropic`/`xai` = bring-your-own-key;
  *  `gateway` = Vercel AI Gateway; `opendex` = hosted subscription. */
-export type LlmProvider = "gemma" | "gemini-gemma" | "apple" | "openai" | "anthropic" | "xai" | "gateway" | "opendex";
+export type LlmProvider = "gemini-gemma" | "gemma" | "apple" | "openai" | "anthropic" | "xai" | "gateway" | "opendex";
 /** How a provider authenticates: `none` (local), `key` (user-pasted secret), or
  *  `account` (a session we manage — reserved for the OpenDex subscription). */
 export type ProviderAuth = "none" | "key" | "account";
 export type SecretName =
   | "GEMINI_API_KEY"
   | "AI_GATEWAY_API_KEY"
-  | "ELEVENLABS_API_KEY"
   | "TAVILY_API_KEY"
   | "OPENAI_API_KEY"
   | "ANTHROPIC_API_KEY"
@@ -73,7 +72,6 @@ export interface OpenDexConfig {
   };
   tts: {
     engine: TtsEngine;
-    elevenLabs: { voiceId: string; modelId: string };
     system: { voiceURI: string | null; rate: number; pitch: number };
   };
   greeting: {
@@ -138,7 +136,6 @@ export type SkillPermission = "ask" | "always" | "never";
 export interface SecretsPresence {
   GEMINI_API_KEY: boolean;
   AI_GATEWAY_API_KEY: boolean;
-  ELEVENLABS_API_KEY: boolean;
   TAVILY_API_KEY: boolean;
   OPENAI_API_KEY: boolean;
   ANTHROPIC_API_KEY: boolean;
@@ -158,10 +155,10 @@ export type TalkitConfig = OpenDexConfig;
 export const DEFAULT_CONFIG: OpenDexConfig = {
   version: 1,
   assistant: { name: "TalkIt", wakeWord: "talkit", userGender: "unspecified", persona: "" },
-  // Talkit defaults to Google Gemma served locally through Ollama (gemma3:4b)
+  // Talkit defaults to Google Gemini API (ultra-fast, multimodal & cloud-hosted)
   llm: {
-    provider: "gemma",
-    model: "gemma3:4b",
+    provider: "gemini-gemma",
+    model: "gemini-2.5-flash",
     ollamaBaseUrl: "http://127.0.0.1:11434/v1",
   },
   approval: {
@@ -175,7 +172,6 @@ export const DEFAULT_CONFIG: OpenDexConfig = {
   },
   tts: {
     engine: "system",
-    elevenLabs: { voiceId: "JBFqnCBsd6RMkjVDRZzb", modelId: "eleven_turbo_v2_5" },
     system: { voiceURI: null, rate: 1, pitch: 1 },
   },
   greeting: { mode: "none", customPrompt: "" },
@@ -193,8 +189,8 @@ export const DEFAULT_CONFIG: OpenDexConfig = {
     idleDisconnectSec: 10,
   },
   voiceInput: {
-    // Free, offline defaults: Vosk wake word + local Whisper transcription.
-    wakeMode: "vosk",
+    // Fast, responsive: click or press Space to talk + local Whisper transcription.
+    wakeMode: "manual",
     sttProvider: "whisper-local",
     whisperModel: "Xenova/whisper-base.en",
   },
@@ -217,7 +213,6 @@ export const DEFAULT_CONFIG: OpenDexConfig = {
 export const SECRET_NAMES: SecretName[] = [
   "GEMINI_API_KEY",
   "AI_GATEWAY_API_KEY",
-  "ELEVENLABS_API_KEY",
   "TAVILY_API_KEY",
   "OPENAI_API_KEY",
   "ANTHROPIC_API_KEY",

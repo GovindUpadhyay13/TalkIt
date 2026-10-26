@@ -1,14 +1,15 @@
 import type { SttProvider } from "../config/schema";
 import { transcribeOpenAI } from "./openai";
+import { transcribeGemini } from "./gemini";
 
-// Provider switch for cloud transcription. Web Speech is handled entirely in
-// the renderer and never reaches here. New cloud providers (Deepgram, etc.)
-// slot in alongside OpenAI.
+// Provider switch for cloud transcription.
 export async function transcribe(
   provider: SttProvider,
   wav: Buffer,
 ): Promise<string> {
   switch (provider) {
+    case "gemini":
+      return transcribeGemini(wav);
     case "openai":
       return transcribeOpenAI(wav);
     default:

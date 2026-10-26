@@ -369,8 +369,8 @@ export function useDex(options: UseDexOptions): UseDexResult {
       }
       sttEngineRef.current?.engine.dispose();
       let engine: SttEngine;
-      if (provider === "openai") {
-        engine = new CloudSttEngine("openai");
+      if (provider === "openai" || provider === "gemini") {
+        engine = new CloudSttEngine(provider);
       } else if (provider === "whisper-local") {
         const { WhisperSttEngine } = await import("./engines/whisper-stt");
         engine = new WhisperSttEngine(whisperModel, (p) =>
@@ -1381,11 +1381,11 @@ export function useDex(options: UseDexOptions): UseDexResult {
 
   startModeRef.current = startMode;
 
-  // Manual push-to-talk: jump straight to command capture (orb click / hotkey).
+  // Push-to-talk / click-to-speak: jump straight to command capture (orb click / hotkey).
   const pushToTalk = useCallback(() => {
-    if (optionsRef.current.wakeMode !== "manual" || mutedRef.current) return;
+    if (mutedRef.current) return;
     const s = statusRef.current;
-    if (s === "listening_wake" || s === "idle") {
+    if (s === "listening_wake" || s === "idle" || s === "unsupported") {
       startModeRef.current?.("command");
     }
   }, []);
@@ -1491,7 +1491,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
   }, [options.voiceMode, closeRealtime]);
 
   const engage = useCallback(async () => {
-    if (!isSpeechRecognitionSupported()) {
+    if (needsWebSpeech && !isSpeechRecognitionSupported()) {
       setStatus("unsupported");
       return;
     }
@@ -1806,8 +1806,8 @@ export function useDex(options: UseDexOptions): UseDexResult {
   ]);
 
   const canPushToTalk =
-    options.wakeMode === "manual" &&
-    (status === "listening_wake" || status === "idle");
+    !isMuted &&
+    (status === "listening_wake" || status === "idle" || status === "unsupported" || options.wakeMode === "manual");
 
   return {
     status,

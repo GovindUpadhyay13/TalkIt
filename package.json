@@ -27,7 +27,6 @@
     "@ai-sdk/google": "^4.0.105",
     "@ai-sdk/openai": "^3.0.74",
     "@ai-sdk/xai": "^3.0.104",
-    "@elevenlabs/elevenlabs-js": "^2.49.1",
     "@huggingface/transformers": "^4.2.0",
     "@meridius-labs/apple-on-device-ai": "^1.6.2",
     "@nut-tree-fork/nut-js": "^4.2.6",

@@ -108,7 +108,7 @@ export async function resolveModel(config: OpenDexConfig): Promise<LanguageModel
           "No Gemini API key found. Please provide a GEMINI_API_KEY from Google AI Studio (https://aistudio.google.com/apikey).",
         );
       }
-      const modelId = model || "gemma-4-26b-a4b-it";
+      const modelId = model || "gemini-2.5-flash";
       const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
       return createGoogleGenerativeAI({ apiKey })(modelId) as unknown as LanguageModel;
     }

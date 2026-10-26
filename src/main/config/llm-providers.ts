@@ -39,6 +39,24 @@ export interface LlmProviderMeta {
 
 export const LLM_PROVIDERS: LlmProviderMeta[] = [
   {
+    id: "gemini-gemma",
+    label: "Google Gemini (Gemini API / Cloud)",
+    blurb: "Google's ultra-fast Gemini & Gemma models via Google AI Studio API.",
+    kind: "byok",
+    auth: "key",
+    secretName: "GEMINI_API_KEY",
+    keyUrl: "https://aistudio.google.com/apikey",
+    supportsTools: true,
+    models: [
+      { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash — Ultra-fast voice & reasoning (Recommended)" },
+      { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro — Deep reasoning & coding" },
+      { id: "gemma-4-26b-a4b-it", label: "Gemma 4 (26B-A4B-IT) — Multimodal & Thinking" },
+      { id: "gemma-4-31b-it", label: "Gemma 4 (31B-IT) — High Capacity Reasoning" },
+      { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash — Fast & Lightweight" },
+    ],
+    note: "Hosted on Google Cloud via the Gemini API. Requires an API key from Google AI Studio.",
+  },
+  {
     id: "gemma",
     label: "Google Gemma (Run Locally / Ollama)",
     blurb: "Google's open Gemma model family running locally on your PC via Ollama.",
@@ -53,23 +71,6 @@ export const LLM_PROVIDERS: LlmProviderMeta[] = [
       { id: "gemma2:2b", label: "Gemma 2 (2B)" },
     ],
     note: "Served locally through the Ollama runtime (default: http://127.0.0.1:11434). Completely private with zero cloud fees.",
-  },
-  {
-    id: "gemini-gemma",
-    label: "Google Gemma (Gemini API / Cloud)",
-    blurb: "Google's hosted Gemma models accessed via the Gemini API.",
-    kind: "byok",
-    auth: "key",
-    secretName: "GEMINI_API_KEY",
-    keyUrl: "https://aistudio.google.com/apikey",
-    supportsTools: true,
-    models: [
-      { id: "gemma-4-26b-a4b-it", label: "Gemma 4 (26B-A4B-IT) — Multimodal & Thinking" },
-      { id: "gemma-4-31b-it", label: "Gemma 4 (31B-IT) — High Capacity Reasoning" },
-      { id: "gemma-2-27b-it", label: "Gemma 2 (27B-IT)" },
-      { id: "gemma-2-9b-it", label: "Gemma 2 (9B-IT)" },
-    ],
-    note: "Hosted on Google Cloud via the Gemini API. Requires an API key from Google AI Studio.",
   },
   {
     id: "apple",

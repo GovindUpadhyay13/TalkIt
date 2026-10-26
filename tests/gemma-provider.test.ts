@@ -4,20 +4,19 @@ import { DEFAULT_CONFIG } from "../src/main/config/schema";
 import { getProviderMeta, LLM_PROVIDERS } from "../src/main/config/llm-providers";
 import { probeOllama, resolveModel } from "../src/main/agent/llm/resolve-model";
 
-describe("Google Gemma / Ollama LLM Provider", () => {
-  it("has Gemma configured as the primary default provider in DEFAULT_CONFIG", () => {
-    assert.equal(DEFAULT_CONFIG.llm.provider, "gemma");
-    assert.equal(DEFAULT_CONFIG.llm.model, "gemma3:4b");
-    assert.equal(DEFAULT_CONFIG.llm.ollamaBaseUrl, "http://127.0.0.1:11434/v1");
+describe("Google Gemma & Gemini LLM Provider", () => {
+  it("has Google Gemini configured as the primary default provider in DEFAULT_CONFIG", () => {
+    assert.equal(DEFAULT_CONFIG.llm.provider, "gemini-gemma");
+    assert.equal(DEFAULT_CONFIG.llm.model, "gemini-2.5-flash");
   });
 
-  it("lists Gemma as the first provider in LLM_PROVIDERS with curated models", () => {
+  it("lists Google Gemini as the first provider in LLM_PROVIDERS with curated models", () => {
     const first = LLM_PROVIDERS[0];
-    assert.equal(first.id, "gemma");
-    assert.equal(first.kind, "local");
-    assert.equal(first.auth, "none");
-    assert.ok(first.models.some((m) => m.id === "gemma3:4b"));
-    assert.ok(first.models.some((m) => m.id === "gemma3:1b"));
+    assert.equal(first.id, "gemini-gemma");
+    assert.equal(first.kind, "byok");
+    assert.equal(first.auth, "key");
+    assert.equal(first.secretName, "GEMINI_API_KEY");
+    assert.ok(first.models.some((m) => m.id === "gemini-2.5-flash"));
   });
 
   it("getProviderMeta returns metadata for gemma", () => {

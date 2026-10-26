@@ -220,6 +220,17 @@ export function CompactBar({
                 >
                   <Settings />
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  tabIndex={-1}
+                  onClick={() => window.opendex.closeNotch()}
+                  aria-label="Close dynamic island overlay"
+                  title="Close overlay"
+                  className={cn(iconButton, "hover:text-destructive")}
+                >
+                  <X />
+                </Button>
               </motion.div>
             )}
           </AnimatePresence>

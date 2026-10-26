@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LogOut, X } from "lucide-react";
 import { useConfig } from "@/lib/use-config";
 import { cn } from "@/lib/utils";
 import { SETTINGS_SECTIONS } from "./sections";
@@ -55,6 +56,24 @@ export function SettingsApp() {
             </button>
           );
         })}
+        <div className="mt-auto pt-3 border-t border-border/40 flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => window.close()}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-left text-xs text-muted-foreground hover:bg-accent/60 hover:text-foreground transition cursor-pointer"
+          >
+            <X className="size-3.5 shrink-0" />
+            <span>Close Settings</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => window.opendex.quitApp()}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-left text-xs text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition cursor-pointer"
+          >
+            <LogOut className="size-3.5 shrink-0" />
+            <span>Quit TalkIt</span>
+          </button>
+        </div>
       </nav>
 
       {/* Content */}

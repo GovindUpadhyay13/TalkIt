@@ -25,7 +25,7 @@ export interface SystemVoiceOptions {
   pitch: number;
 }
 
-export type SpeechEngineKind = "elevenlabs" | "system";
+export type SpeechEngineKind = "system";
 
 /**
  * System TTS via the renderer's SpeechSynthesis API. Sentences are spoken in
@@ -117,8 +117,5 @@ export interface CreateSpeechEngineOptions {
 }
 
 export function createSpeechEngine(opts: CreateSpeechEngineOptions): SpeechEngine {
-  if (opts.kind === "system") {
-    return new SystemSpeechEngine(opts.callbacks, opts.system);
-  }
-  return new TtsPlayer(opts.callbacks);
+  return new SystemSpeechEngine(opts.callbacks, opts.system);
 }

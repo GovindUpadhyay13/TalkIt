@@ -105,8 +105,6 @@ function persistConfig() {
 function applyToEnv() {
   if (!cachedConfig) return;
   process.env.OPENDEX_MODEL = cachedConfig.llm.model;
-  process.env.ELEVENLABS_VOICE_ID = cachedConfig.tts.elevenLabs.voiceId;
-  process.env.ELEVENLABS_MODEL_ID = cachedConfig.tts.elevenLabs.modelId;
   for (const name of SECRET_NAMES) {
     const value = cachedSecrets[name];
     if (value) process.env[name] = value;
@@ -132,7 +130,6 @@ function secretsPresence(): SecretsPresence {
   return {
     GEMINI_API_KEY: hasSecret("GEMINI_API_KEY"),
     AI_GATEWAY_API_KEY: hasSecret("AI_GATEWAY_API_KEY"),
-    ELEVENLABS_API_KEY: hasSecret("ELEVENLABS_API_KEY"),
     TAVILY_API_KEY: hasSecret("TAVILY_API_KEY"),
     OPENAI_API_KEY: hasSecret("OPENAI_API_KEY"),
     ANTHROPIC_API_KEY: hasSecret("ANTHROPIC_API_KEY"),

@@ -206,12 +206,18 @@ function VoiceInputSection({ data, setConfig, setSecret }: SectionProps) {
             value={config.voiceInput.sttProvider}
             options={[
               { value: "whisper-local", label: "Local Whisper (free, offline)" },
+              { value: "gemini", label: "Google Gemini 2.5 Flash (cloud, fast)" },
               { value: "vosk-local", label: "Local Vosk (free, offline, fast)" },
               { value: "openai", label: "OpenAI Whisper (cloud)" },
               { value: "webspeech", label: "Web Speech (browser)" },
             ]}
             onChange={(v) => setConfig({ voiceInput: { ...config.voiceInput, sttProvider: v } })}
           />
+          {config.voiceInput.sttProvider === "gemini" && (
+            <p className="text-xs text-muted-foreground px-1">
+              Uses your Google Gemini API key configured in the Language Model section.
+            </p>
+          )}
           {config.voiceInput.sttProvider === "openai" && (
             <SecretField
               label="OpenAI API key"
@@ -426,56 +432,43 @@ function ModelSection({ data, setConfig, setSecret }: SectionProps) {
   );
 }
 
-function TtsSection({ data, setConfig, setSecret }: SectionProps) {
-  const { config, secrets } = data;
+function TtsSection({ data, setConfig }: SectionProps) {
+  const { config } = data;
   const voices = useSystemVoices();
   return (
     <>
-      <SegmentedControl
-        value={config.tts.engine}
+      <SelectField
+        label="System Voice"
+        hint={voices.length ? "High quality built-in voice for spoken replies." : "Loading available voices…"}
+        value={config.tts.system.voiceURI ?? ""}
         options={[
-          { value: "elevenlabs", label: "ElevenLabs" },
-          { value: "system", label: "System voice" },
+          { value: "", label: "Default System Voice" },
+          ...voices.map((v) => ({ value: v.voiceURI, label: v.label })),
         ]}
-        onChange={(v) => setConfig({ tts: { engine: v } })}
+        onChange={(v) =>
+          setConfig({ tts: { system: { ...config.tts.system, voiceURI: v || null } } })
+        }
       />
-      {config.tts.engine === "elevenlabs" ? (
-        <>
-          <SecretField
-            label="ElevenLabs API key"
-            present={secrets.ELEVENLABS_API_KEY}
-            onSave={(v) => setSecret("ELEVENLABS_API_KEY", v)}
-          />
-          <TextField
-            label="Voice ID"
-            hint="From your ElevenLabs voice library."
-            value={config.tts.elevenLabs.voiceId}
-            onChange={(v) =>
-              setConfig({ tts: { elevenLabs: { ...config.tts.elevenLabs, voiceId: v } } })
-            }
-          />
-          <TextField
-            label="Model"
-            value={config.tts.elevenLabs.modelId}
-            onChange={(v) =>
-              setConfig({ tts: { elevenLabs: { ...config.tts.elevenLabs, modelId: v } } })
-            }
-          />
-        </>
-      ) : (
-        <SelectField
-          label="System voice"
-          hint={voices.length ? undefined : "Loading available voices…"}
-          value={config.tts.system.voiceURI ?? ""}
-          options={[
-            { value: "", label: "Default" },
-            ...voices.map((v) => ({ value: v.voiceURI, label: v.label })),
-          ]}
-          onChange={(v) =>
-            setConfig({ tts: { system: { ...config.tts.system, voiceURI: v || null } } })
-          }
+      <div className="grid grid-cols-2 gap-4">
+        <TextField
+          label="Speed / Rate"
+          hint="Default: 1.0 (0.8x - 1.5x)"
+          value={String(config.tts.system.rate)}
+          onChange={(v) => {
+            const num = parseFloat(v);
+            if (!isNaN(num)) setConfig({ tts: { system: { ...config.tts.system, rate: num } } });
+          }}
         />
-      )}
+        <TextField
+          label="Pitch"
+          hint="Default: 1.0 (0.8 - 1.2)"
+          value={String(config.tts.system.pitch)}
+          onChange={(v) => {
+            const num = parseFloat(v);
+            if (!isNaN(num)) setConfig({ tts: { system: { ...config.tts.system, pitch: num } } });
+          }}
+        />
+      </div>
     </>
   );
 }

@@ -407,44 +407,18 @@ export function OnboardingWizard({
       subtitle: "How TalkIt speaks back to you.",
       render: () => (
         <>
-          <SegmentedControl
-            value={config.tts.engine}
+          <SelectField
+            label="System voice"
+            hint={voices.length ? "High quality voice built into your operating system — no API key needed." : "Loading voices…"}
+            value={config.tts.system.voiceURI ?? ""}
             options={[
-              { value: "elevenlabs", label: "ElevenLabs" },
-              { value: "system", label: "System voice (free)" },
+              { value: "", label: "Default System Voice" },
+              ...voices.map((v) => ({ value: v.voiceURI, label: v.label })),
             ]}
-            onChange={(v) => setConfig({ tts: { engine: v } })}
+            onChange={(v) =>
+              setConfig({ tts: { system: { ...config.tts.system, voiceURI: v || null } } })
+            }
           />
-          {config.tts.engine === "elevenlabs" ? (
-            <>
-              <SecretField
-                label="ElevenLabs API key"
-                present={secrets.ELEVENLABS_API_KEY}
-                onSave={(v) => setSecret("ELEVENLABS_API_KEY", v)}
-              />
-              <TextField
-                label="Voice ID"
-                hint="Defaults to a deep British voice (George)."
-                value={config.tts.elevenLabs.voiceId}
-                onChange={(v) =>
-                  setConfig({ tts: { elevenLabs: { ...config.tts.elevenLabs, voiceId: v } } })
-                }
-              />
-            </>
-          ) : (
-            <SelectField
-              label="System voice"
-              hint={voices.length ? "Uses your operating system's built-in speech — no API key needed." : "Loading voices…"}
-              value={config.tts.system.voiceURI ?? ""}
-              options={[
-                { value: "", label: "Default" },
-                ...voices.map((v) => ({ value: v.voiceURI, label: v.label })),
-              ]}
-              onChange={(v) =>
-                setConfig({ tts: { system: { ...config.tts.system, voiceURI: v || null } } })
-              }
-            />
-          )}
         </>
       ),
     },

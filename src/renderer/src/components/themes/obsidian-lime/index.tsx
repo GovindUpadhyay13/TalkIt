@@ -63,17 +63,15 @@ function ObsidianLimeVisualizer({ status, getAmplitude, canPushToTalk, onPushToT
 
       {/* Main interaction button / icon */}
       <div
-        onClick={canPushToTalk ? onPushToTalk : undefined}
-        className={`group relative flex h-28 w-28 items-center justify-center rounded-3xl border transition-all duration-300 ${
-          canPushToTalk ? "cursor-pointer hover:scale-105 active:scale-95" : ""
-        } ${
+        onClick={onPushToTalk}
+        className={`group relative flex h-28 w-28 items-center justify-center rounded-3xl border transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95 ${
           isActive
             ? "border-primary/60 bg-[#182118] ring-2 ring-primary/30"
             : isPending
               ? "border-amber-500/50 bg-[#241e14] ring-1 ring-amber-500/30"
               : isError
                 ? "border-destructive/50 bg-[#241417] ring-1 ring-destructive/30"
-                : "border-[#343D34] bg-[#181f18] hover:border-[#424e42]"
+                : "border-[#343D34] bg-[#181f18] hover:border-[#C5F467]/40 hover:shadow-[0_0_15px_rgba(197,244,103,0.1)]"
         }`}
       >
         {/* Vertical sound-wave bars representing voice interaction */}
@@ -102,9 +100,9 @@ function ObsidianLimeVisualizer({ status, getAmplitude, canPushToTalk, onPushToT
         </div>
       </div>
 
-      {/* Push-to-talk hint when configured */}
-      {canPushToTalk && isIdle && (
-        <span className="mt-4 rounded-full border border-[#343D34] bg-[#181f18]/80 px-3 py-1 text-[11px] font-medium text-[#A4ADA0] backdrop-blur">
+      {/* Push-to-talk hint when idle */}
+      {isIdle && (
+        <span className="mt-3 rounded-full border border-[#343D34] bg-[#181f18]/80 px-3 py-1 text-[11px] font-medium text-[#A4ADA0] backdrop-blur">
           Click or press <kbd className="text-[#C5F467] font-mono">Space</kbd> to talk
         </span>
       )}

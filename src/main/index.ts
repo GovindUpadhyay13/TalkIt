@@ -45,7 +45,6 @@ import {
   setPermissionUi,
   type PermissionDecision,
 } from "./agent/permissions";
-import { synthesizeSpeech } from "./tts/elevenlabs";
 import { transcribe } from "./stt";
 import {
   completeOnboarding,
@@ -65,6 +64,7 @@ import { initAnalytics, track } from "./analytics";
 loadEnv();
 
 const isDev = !app.isPackaged;
+const appIconPath = join(__dirname, "../../build/icon.png");
 
 // The single main window hosts the entire voice session (mic/STT/TTS run only
 // in its renderer). We hide it rather than destroy it (see the close handler +
@@ -102,11 +102,13 @@ const NOTCH_MAX_HEIGHT = 260;
 function createWindow() {
   const win = new BrowserWindow({
     width: 480,
-    height: 480,
+    height: 520,
     minWidth: 360,
     minHeight: 420,
     backgroundColor: "#0a0a0a",
-    title: "Talkit",
+    title: "TalkIt",
+    icon: appIconPath,
+    autoHideMenuBar: true,
     show: false,
     // Frameless, native-feeling chrome on macOS: hide the title bar and let the
     // renderer fill to the top edge, keeping the traffic lights inset over it.
@@ -129,17 +131,12 @@ function createWindow() {
 
   win.once("ready-to-show", () => win.show());
 
-  // Closing the window (red traffic light / Ctrl+W) collapses to the notch
-  // instead of tearing down the renderer — that would kill the live voice
-  // session. The session keeps running in the (now hidden) main window behind
-  // the notch. Before onboarding finishes we just hide, since the wizard always
-  // runs full. A real quit goes through the tray or ⌘Q (isQuitting), and only
-  // then do we let it close.
+  // Closing the window hides it cleanly to keep the assistant available in the background
+  // without popping up the intrusive notch overlay.
   win.on("close", (event) => {
     if (isQuitting) return;
     event.preventDefault();
-    if (getConfig().onboarding.completed) applyWindowMode("notch");
-    else win.hide();
+    win.hide();
   });
 
   win.on("closed", () => {
@@ -392,21 +389,10 @@ function applyWindowMode(mode: WindowMode) {
   mainWindow?.webContents.send(IPC.windowMode, mode);
 }
 
-// Auto-engage notch when the full window loses focus — clicked away, or the agent
-// is driving another app during computer-use (which steals focus). Only after
-// onboarding so the wizard always runs full.
-function attachAutoModeListeners(win: BrowserWindow) {
-  win.on("blur", () => {
-    // Don't collapse to notch when the blur is the permission popup taking focus
-    // — answering a prompt shouldn't change the main window's layout.
-    if (
-      getConfig().onboarding.completed &&
-      win.isVisible() &&
-      pendingPermissions() === 0
-    ) {
-      applyWindowMode("notch");
-    }
-  });
+// Auto-engage listeners: do NOT automatically collapse to notch on blur.
+// This prevents the dynamic island overlay from taking over the screen over other apps.
+function attachAutoModeListeners(_win: BrowserWindow) {
+  // Blur does not force notch mode.
 }
 
 // Spotlight-style summon: toggle whichever surface the current mode uses. In
@@ -448,12 +434,14 @@ function openSettingsWindow() {
   }
 
   settingsWindow = new BrowserWindow({
-    width: 820,
+    width: 840,
     height: 720,
     minWidth: 560,
     minHeight: 480,
     backgroundColor: "#0a0a0a",
-    title: "OpenDex Settings",
+    title: "TalkIt Settings",
+    icon: appIconPath,
+    autoHideMenuBar: true,
     show: false,
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
@@ -598,12 +586,22 @@ function registerIpc() {
     inFlight.delete(requestId);
   });
 
-  ipcMain.handle(IPC.ttsSynthesize, async (_event, text: string) => {
-    const buffer = await synthesizeSpeech(text);
-    return buffer.buffer.slice(
-      buffer.byteOffset,
-      buffer.byteOffset + buffer.byteLength,
-    ) as ArrayBuffer;
+  ipcMain.handle(IPC.ttsSynthesize, async () => {
+    return new ArrayBuffer(0);
+  });
+
+  ipcMain.on("app:quit", () => {
+    isQuitting = true;
+    app.quit();
+  });
+
+  ipcMain.on("window:close", () => {
+    mainWindow?.hide();
+  });
+
+  ipcMain.on("notch:close", () => {
+    applyWindowMode("full");
+    notchWindow?.hide();
   });
 
   // Realtime voice sessions --------------------------------------------------
@@ -897,6 +895,9 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
+  // Hide standard application menu bar ("File Edit View Window") globally
+  Menu.setApplicationMenu(null);
+
   initConfig();
   initAnalytics();
   track("app_started");

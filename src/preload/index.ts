@@ -241,6 +241,21 @@ const opendex = {
     ipcRenderer.send(IPC.windowSetMode, mode);
   },
 
+  /** Close / hide the main window cleanly. */
+  closeWindow(): void {
+    ipcRenderer.send("window:close");
+  },
+
+  /** Close the top notch bar dynamic island overlay. */
+  closeNotch(): void {
+    ipcRenderer.send("notch:close");
+  },
+
+  /** Completely quit the TalkIt desktop application. */
+  quitApp(): void {
+    ipcRenderer.send("app:quit");
+  },
+
   /** Notch only: set the notch window size (px) — the renderer measures its own
    *  content and drives width + height (compact at rest, wider/taller for a
    *  caption, type field, or result card). */

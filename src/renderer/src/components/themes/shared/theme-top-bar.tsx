@@ -1,4 +1,4 @@
-import { Minimize2, Mic, MicOff, Settings, SquarePen } from "lucide-react";
+import { Minimize2, Mic, MicOff, Settings, SquarePen, X } from "lucide-react";
 import { StatusPill } from "@/components/status-bar";
 import { Button } from "@/components/ui/button";
 import { TalkItBrand } from "@/components/brand/talkit-logo";
@@ -104,6 +104,16 @@ export function ThemeTopBar({
           className="rounded-full bg-dex-surface/70 text-muted-foreground backdrop-blur hover:text-foreground"
         >
           <Settings />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={() => window.opendex.closeWindow()}
+          aria-label="Close TalkIt"
+          title="Close TalkIt"
+          className="rounded-full bg-dex-surface/70 text-muted-foreground backdrop-blur hover:text-rose-400 hover:border-rose-500/40"
+        >
+          <X className="size-3.5" />
         </Button>
       </div>
     </header>
