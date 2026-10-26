@@ -56,6 +56,19 @@ describe("Talkit Execute — Desktop Automation & Skills", () => {
     const listRes = (await listTool.execute({})) as { ok?: boolean; count?: number };
     assert.equal(listRes.ok, true);
     assert.ok((listRes.count ?? 0) >= 1);
+
+    // Clean up test file so tests don't leave residue on the device
+    if (createRes.path) {
+      const { promises: fs } = await import("node:fs");
+      const { join } = await import("node:path");
+      try {
+        await fs.unlink(createRes.path);
+        const cwdTalkit = join(process.cwd(), "Talkit");
+        await fs.rm(cwdTalkit, { recursive: true, force: true });
+      } catch {
+        // ignore cleanup error
+      }
+    }
   });
 
   it("executeDirectCommand parses and matches calculator and desktop app intents", async () => {

@@ -12,10 +12,7 @@
 [![Platform: Windows 10/11](https://img.shields.io/badge/Platform-Windows%2010%2F11%20%7C%20macOS%20%7C%20Linux-181f18?style=flat-square&logo=windows&logoColor=0078D4)](#quick-start-windows-first)
 [![Runtime: Electron 42](https://img.shields.io/badge/Runtime-Electron%2042%20%7C%20Node%2020%2B-181f18?style=flat-square&logo=electron&logoColor=9FEAF9)](https://www.electronjs.org/)
 [![AI Engine: Google Gemma](https://img.shields.io/badge/AI%20Engine-Google%20Gemma%20%26%20Gemini-181f18?style=flat-square&logo=google&logoColor=C5F467)](#gemma-architecture--model-backends)
-[![Tests: 19 Passing](https://img.shields.io/badge/Tests-19%20Passing-181f18?style=flat-square&logo=node.js&logoColor=C5F467)](#testing--verification)
-
-<!-- DEMO_VIDEO_URL: Replace with your recorded video walkthrough (e.g. YouTube/Loom/MP4) -->
-> 📺 **Demo Walkthrough**: *[Watch the TalkIt Voice & Approval Demo Video](https://github.com/GovindUpadhyay13/TalkIt#product-walkthrough)*
+[![Tests: 27 Passing](https://img.shields.io/badge/Tests-27%20Passing-181f18?style=flat-square&logo=node.js&logoColor=C5F467)](#testing--verification)
 
 **Team**: Exodus &nbsp;|&nbsp; **Author**: Govind Upadhyay ([@GovindUpadhyay13](https://github.com/GovindUpadhyay13))
 
@@ -74,38 +71,48 @@ TalkIt ships with three tailored visual themes: **Obsidian Lime** (amplitude-rea
 
 ## Four Core Capabilities
 
-### 1. TalkIt Write: System-Wide Voice Dictation
-- **Input into any app**: Dictate directly into VS Code, Windows Terminal, Slack, Obsidian, or Chrome.
-- **Clipboard preservation**: Uses `@nut-tree-fork/nut-js` and Electron clipboard injection. Your existing clipboard contents are read, your transcribed text is pasted, and your original clipboard is restored within 120ms.
-- **Deduplication guard**: The dictation buffer suppresses rapid accidental duplicate re-pastes and keeps a bounded history of your last 50 dictations.
-- **Global toggle**: Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd> or click the visualizer orb to trigger speech input immediately.
+### 1. TalkIt Write: System-Wide Wispr Flow Voice Dictation
+- **Input into any active app**: Dictate naturally into VS Code, Windows Terminal, Slack, Obsidian, Chrome, or Word.
+- **Voice Flow Control**: Speak freely, say `"Whisper wait"` to pause dictation and insert pending text, and say `"TalkIt continue"` to resume.
+- **1-Second Smart Silence Endpointing**: Continuously tracks speech pauses and automatically completes dictation after 1 second of silence.
+- **Clipboard preservation**: Uses `@nut-tree-fork/nut-js` and Electron clipboard injection. Your existing clipboard contents are preserved, transcribed text is typed in, and original clipboard contents are restored within 120ms.
+- **Deduplication guard**: The dictation buffer suppresses accidental duplicate pastes and maintains a bounded history of recent dictations.
+- **Global toggle**: Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd> or speak `"Hey TalkIt"` to start dictating immediately.
 
-### 2. TalkIt Execute: Deterministic Desktop Automation
-TalkIt does not let an LLM execute arbitrary, unconstrained shell strings. Instead, it pairs Gemma's intent parsing with strictly typed, deterministic **Skills**:
-- **Application Launcher (`openApp`)**: Safely launches approved system executables (e.g. `Calculator`, `Notepad`, `Terminal`, browsers).
-- **Strict URL Navigator (`openUrl`)**: Strictly validates protocols, allowing only `http:`, `https:`, and `mailto:`. Dangerous schemes like `javascript:`, `file:`, or `smb:` are rejected at the execution boundary.
-- **Local Research Notes (`notesSkill`)**: Creates, lists, and reads structured markdown notes stored locally in your app data directory (`createNote`, `readNote`, `listNotes`).
-- **Live Weather Query (`weatherSkill`)**: Live meteorological data via Open-Meteo without requiring API keys.
-- **Web Search (`webSearchSkill`)**: Real-time web intelligence powered by the Tavily search API.
+### 2. TalkIt Execute: Strict Execution Mode & Instant Desktop Actions
+TalkIt features strict separation between voice typing and command execution:
+- **Explicit Voice Mode Shift**: Normal speech stays strictly in dictation mode. Say **`"Hey TalkIt, execution mode [command]"`** (e.g. *"Hey TalkIt, execution mode open calculator"*) to switch into execution mode and trigger actions.
+- **Direct Native Desktop Automation**: Built-in 50ms native executor launches system utilities instantly without cloud LLM roundtrips:
+  - **Calculator**: *"open calculator"* / *"launch calc"*
+  - **Notepad**: *"open notepad"* / *"launch text editor"*
+  - **Browsers & Web**: *"open chrome"*, *"launch edge"*, *"open youtube.com"*, or direct web searches
+  - **Terminal**: *"open terminal"* / *"launch cmd"* / *"open powershell"*
+  - **Media & System**: *"open spotify"*, *"open settings"*, *"what is the time"*, *"current date"*
+- **Deterministic Gemma Skills**: Complex queries leverage Google Gemma with typed, sandboxed skills:
+  - **Strict URL Navigator (`openUrl`)**: Rejects dangerous schemes (`javascript:`, `file:`, `smb:`); permits only `http:`, `https:`, and `mailto:`.
+  - **Local Research Notes (`notesSkill`)**: Creates, lists, and reads structured markdown notes stored locally.
+  - **Live Weather Query (`weatherSkill`)**: Meteorological data via Open-Meteo with no API keys required.
+  - **Web Search (`webSearchSkill`)**: Real-time web intelligence powered by Tavily.
 
-### 3. TalkIt Approve: Voice Permission Flow for Coding Agents
-**The signature workflow differentiator.** When background AI coding tools (such as Claude Code, Cursor, Copilot CLI, or custom CI scripts) need confirmation to run a bash command, modify a codebase, or make a network call:
-1. The external tool invokes the included CLI hook: `node scripts/talkit-approval-hook.js`.
+### 3. TalkIt Approve: Hands-Free Voice Approvals for Coding Agents
+**The signature workflow differentiator.** When background AI coding tools (such as Claude Code, Cursor, Copilot CLI, or terminal scripts) require permission to run bash commands or modify files:
+1. The external agent invokes the included CLI hook: `node scripts/talkit-approval-hook.js`.
 2. The hook dispatches a request to TalkIt's loopback HTTP server (`http://127.0.0.1:51111/v1/permissions/request`).
-3. TalkIt brings up an approval card and speaks the intent aloud:  
-   *"Your Claude Code wants to run bash command: pip install requests. Allow this request?"*
-4. You speak your decision naturally:
-   - *"Allow once"* / *"Go ahead"* &rarr; grants single-turn permission, returns status code `0`.
-   - *"Always allow"* &rarr; remembers permission for this action type.
-   - *"Deny"* / *"No"* &rarr; rejects permission, returns status code `1`.
+3. TalkIt displays the approval card in the HUD and speaks the prompt aloud:  
+   *"Your Claude Code wants to run bash command: npm install express. Allow this request?"*
+4. Speak your decision naturally:
+   - *"Allow once"* / *"Go ahead"* &rarr; grants single-turn permission (exit code `0`).
+   - *"Always allow"* &rarr; persists permission for this action type.
+   - *"Deny"* / *"No"* &rarr; rejects permission (exit code `1`).
    - *"Explain that again"* &rarr; repeats details aloud without resolving.
    - *Ambiguous speech* &rarr; conservative parser rejects auto-approval; never guesses.
-   - *60-second timeout* &rarr; automatically defaults to denial (`deny`).
+   - *60-second timeout* &rarr; fails closed to denial (`deny`).
 
-### 4. TalkIt Flow: Context-Preserving State Machine
-TalkIt maintains an explicit conversational and operational state machine:
-`idle` &rarr; `listening_wake` &rarr; `active_listening` &rarr; `thinking` &rarr; `speaking` &rarr; `writing` &rarr; `approval_pending`.  
-When an approval request interrupts an ongoing dictation, TalkIt freezes the dictation buffer, presents the approval prompt, and upon resolution returns smoothly to your previous context.
+### 4. TalkIt Notch HUD: Minimalist Floating Interface
+TalkIt eliminates screen-covering modal clutter with a unified, discrete Top Notch bar:
+- **Zero Popup Redundancy**: Dictation status, silence countdown, and execution feedback animate directly inside the persistent top Notch toggle without opening secondary overlay windows.
+- **Real-Time States**: Instant visual feedback for `STANDING BY`, `TALKIT LISTENING...`, `TRANSCRIBING...`, `EXECUTING...`, and `HOLDING (WHISPER WAIT)`.
+- **Global Emergency Stop**: Press <kbd>Ctrl</kbd> + <kbd>Escape</kbd> at any time to immediately kill active TTS speech and abort pending tasks.
 
 ---
 
@@ -217,7 +224,7 @@ pnpm install
    Or simply enter the key in the TalkIt Onboarding Wizard or Settings UI (<kbd>⚙️</kbd>).
 
 ### 3. Run Automated Tests
-Verify that all 19 unit and integration tests pass:
+Verify that all 27 unit and integration tests pass:
 ```bash
 pnpm test
 ```
@@ -346,7 +353,7 @@ TalkIt maintains a verified unit and integration test suite in the `tests/` dire
 pnpm test
 ```
 
-### Verified Test Suite Output (19/19 Passing)
+### Verified Test Suite Output (27/27 Passing)
 ```text
 ▶ Talkit Approve — Voice Decisions & Coding Agent Server
   ▶ parseVoiceDecision
@@ -365,10 +372,21 @@ pnpm test
   ✔ handles empty and whitespace dictation gracefully without altering history
 ✔ Talkit Write — System-wide Dictation State & Deduplication
 
+▶ Wispr Flow — Flow Control & Transcription Parsing
+  ✔ strips leading 'Hey TalkIt' or 'TalkIt' wake words
+  ✔ detects 'Whisper wait' and extracts preceding text to insert
+  ✔ parses continuous transcription chunks correctly
+  ✔ identifies empty and noise hallucinations as empty
+  ✔ detects 'TalkIt continue' and resume commands
+  ✔ detects hardcoded 'Hey TalkIt' wake command
+  ✔ detects 'execution mode' and extracts task for desktop implementation
+✔ Wispr Flow — Flow Control & Transcription Parsing
+
 ▶ Talkit Execute — Desktop Automation & Skills
   ✔ includes notesSkill and openSkill in BUILTIN_SKILLS
   ✔ validates openUrl to reject dangerous non-http protocols (javascript:, file:, smb:)
   ✔ notesSkill successfully creates, lists, and reads notes
+  ✔ executeDirectCommand parses and matches calculator and desktop app intents
 ✔ Talkit Execute — Desktop Automation & Skills
 
 ▶ Google Gemma & Gemini LLM Provider
@@ -386,7 +404,7 @@ pnpm test
   ✔ has TalkIt configured as the assistant name
 ✔ Obsidian Lime Theme System
 
-ℹ tests 19 | pass 19 | fail 0 | duration_ms 1713
+ℹ tests 27 | suites 8 | pass 27 | fail 0 | duration_ms 2474
 ```
 
 ---

@@ -10,8 +10,6 @@ import type { PermissionRequester, Skill, SkillMeta } from "./types";
 
 // Built-in skills available to the agent. To add a skill: create a folder under
 // src/skills/<name>/ (meta.ts + skill.ts [+ view.tsx]) and add one line here.
-// (Explicit, not glob, so `pnpm smoke:chat` runs the registry under tsx — which
-// doesn't transform import.meta.glob.) See CONTRIBUTING.md.
 export const BUILTIN_SKILLS: Skill[] = [
   clockSkill,
   weatherSkill,

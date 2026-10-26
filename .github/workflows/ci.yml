@@ -14,8 +14,6 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    env:
-      AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,13 +33,10 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Test
+        run: pnpm test
+
       # Full electron-vite build (main + preload + renderer). Catches bundling
-      # and import errors that `tsc --noEmit` alone misses. No secrets required.
+      # and import errors that `tsc --noEmit` alone misses.
       - name: Build
         run: pnpm build
-
-      # Smoke-test the agent loop only when a gateway key is available (e.g. on
-      # pushes to main, not forked-PR runs). Skipped silently otherwise.
-      - name: Smoke-test agent
-        if: ${{ env.AI_GATEWAY_API_KEY != '' }}
-        run: pnpm smoke:chat

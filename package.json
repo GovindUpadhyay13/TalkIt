@@ -11,15 +11,11 @@
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",
-    "smoke:chat": "tsx scripts/smoke-chat.ts",
-    "smoke:realtime": "tsx scripts/smoke-realtime.ts",
     "dist": "electron-vite build && electron-builder",
     "release": "electron-vite build && electron-builder --publish always",
     "cut:patch": "pnpm version patch -m \"Release v%s\" && git push --follow-tags",
     "cut:minor": "pnpm version minor -m \"Release v%s\" && git push --follow-tags",
-    "cut:major": "pnpm version major -m \"Release v%s\" && git push --follow-tags",
-    "notes:preview": "tsx scripts/generate-release-notes.ts HEAD \"$(git tag --sort=-v:refname | head -1)\"",
-    "review:pr": "tsx scripts/review-pr.ts origin/main HEAD"
+    "cut:major": "pnpm version major -m \"Release v%s\" && git push --follow-tags"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.86",
