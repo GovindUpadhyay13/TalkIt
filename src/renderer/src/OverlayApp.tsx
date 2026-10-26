@@ -12,7 +12,11 @@ export function OverlayApp() {
 
   useEffect(() => window.opendex.onSessionState(setState), []);
 
-  const busy = state?.status === "thinking" || state?.status === "speaking";
+  const busy =
+    state?.status === "thinking" ||
+    state?.status === "speaking" ||
+    state?.status === "writing" ||
+    state?.status === "paused";
 
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -25,7 +29,21 @@ export function OverlayApp() {
           onMouseEnter={() => window.opendex.setOverlayInteractive(true)}
           onMouseLeave={() => window.opendex.setOverlayInteractive(false)}
         >
-          <StopControl onStop={() => window.opendex.overlayInterrupt()} />
+          {state?.status === "writing" && (
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-dex-surface/90 border border-primary/40 text-primary text-xs font-medium backdrop-blur shadow-xl">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span>Transcribing (Wispr Flow)…</span>
+            </div>
+          )}
+          {state?.status === "paused" && (
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-dex-surface/90 border border-amber-500/50 text-amber-400 text-xs font-medium backdrop-blur shadow-xl">
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span>Whisper Paused (Type freely · Say &ldquo;TalkIt continue&rdquo;)</span>
+            </div>
+          )}
+          {(state?.status === "thinking" || state?.status === "speaking") && (
+            <StopControl onStop={() => window.opendex.overlayInterrupt()} />
+          )}
         </div>
       )}
       {state && state.activity.length > 0 && (

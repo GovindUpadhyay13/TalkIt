@@ -478,6 +478,8 @@ function broadcastSessionState(state: SessionState) {
   const busy =
     state.status === "thinking" ||
     state.status === "speaking" ||
+    state.status === "writing" ||
+    state.status === "paused" ||
     state.activity.length > 0;
   const overlay = overlayWindow;
   if (overlay && !overlay.isDestroyed()) {
