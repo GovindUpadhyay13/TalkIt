@@ -24,6 +24,25 @@ const auditLog: Array<{
 let serverInstance: Server | null = null;
 let currentNotifier: ((req: ExternalPermissionRequest) => void) | null = null;
 
+export type ApprovalServerEvent = {
+  type: "requested" | "resolved";
+  request: ExternalPermissionRequest;
+  decision?: CodingAgentDecision;
+};
+
+const approvalEventListeners = new Set<(event: ApprovalServerEvent) => void>();
+
+export function onApprovalEvent(listener: (event: ApprovalServerEvent) => void): () => void {
+  approvalEventListeners.add(listener);
+  return () => {
+    approvalEventListeners.delete(listener);
+  };
+}
+
+export function getActivePendingRequests(): ExternalPermissionRequest[] {
+  return Array.from(pendingRequests.values()).map((p) => p.request);
+}
+
 export function setApprovalNotifier(notifier: (req: ExternalPermissionRequest) => void) {
   currentNotifier = notifier;
 }
@@ -146,6 +165,9 @@ export function startApprovalServer(config: ApprovalServerConfig = { port: 51111
                 requestItem.status = "resolved";
                 requestItem.decision = dec;
                 auditLog.push({ id, source, action, decision: dec, timestamp: Date.now() });
+                for (const l of approvalEventListeners) {
+                  try { l({ type: "resolved", request: requestItem, decision: dec }); } catch {}
+                }
                 resolveDecision(dec);
               },
               timer,
@@ -153,6 +175,9 @@ export function startApprovalServer(config: ApprovalServerConfig = { port: 51111
           });
 
           // Notify the UI and audio output
+          for (const l of approvalEventListeners) {
+            try { l({ type: "requested", request: requestItem }); } catch {}
+          }
           if (currentNotifier) {
             currentNotifier(requestItem);
           }
@@ -215,8 +240,15 @@ export function resolveExternalRequest(id: string, decision: CodingAgentDecision
 export function stopApprovalServer(): Promise<void> {
   return new Promise((resolve) => {
     if (!serverInstance) return resolve();
-    serverInstance.close(() => {
-      serverInstance = null;
+    const s = serverInstance;
+    serverInstance = null;
+    try {
+      (s as any).closeAllConnections?.();
+      s.unref();
+    } catch {
+      // ignore
+    }
+    s.close(() => {
       resolve();
     });
   });

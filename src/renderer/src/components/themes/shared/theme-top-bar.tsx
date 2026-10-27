@@ -1,7 +1,9 @@
-import { Minimize2, Mic, MicOff, Settings, SquarePen, X } from "lucide-react";
+import { useState } from "react";
+import { Code2, Minimize2, Mic, MicOff, Settings, SquarePen, X } from "lucide-react";
 import { StatusPill } from "@/components/status-bar";
 import { Button } from "@/components/ui/button";
 import { TalkItBrand } from "@/components/brand/talkit-logo";
+import { DeveloperCompanion } from "@/components/developer/DeveloperCompanion";
 import type { DexStatus } from "@/lib/dex/state";
 
 // Shared top bar used by every theme: brand on the left, and a single right-hand
@@ -36,23 +38,38 @@ export function ThemeTopBar({
   onNewConversation?: () => void;
 }) {
   const isListeningOrSpeaking = status === "active_listening" || status === "speaking";
+  const [showDevCompanion, setShowDevCompanion] = useState(false);
 
   return (
-    <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-5 py-4 sm:px-6 sm:py-5">
-      <div className="traffic-light-pad flex min-w-0 items-center gap-2.5">
-        {showBrand && (
-          <div className="flex items-center gap-2">
-            <TalkItBrand active={isListeningOrSpeaking} />
-            {name && name.toLowerCase() !== "talkit" && (
-              <span className="truncate text-xs font-mono uppercase tracking-[0.2em] text-[#A4ADA0]">
-                / {name}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="titlebar-no-drag pointer-events-auto relative z-40 flex shrink-0 items-center gap-2">
-        {showStatus && (
+    <>
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-5 py-4 sm:px-6 sm:py-5">
+        <div className="traffic-light-pad flex min-w-0 items-center gap-2.5">
+          {showBrand && (
+            <div className="flex items-center gap-2">
+              <TalkItBrand active={isListeningOrSpeaking} />
+              {name && name.toLowerCase() !== "talkit" && (
+                <span className="truncate text-xs font-mono uppercase tracking-[0.2em] text-[#A4ADA0]">
+                  / {name}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="titlebar-no-drag pointer-events-auto relative z-40 flex shrink-0 items-center gap-2">
+          {/* Developer Mode On-Screen Companion Toggle/Opener */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDevCompanion(true)}
+            aria-label="Developer Mode Companion"
+            title="Developer Mode: Background Coding Companion"
+            className="rounded-full bg-dex-surface/70 text-xs font-mono backdrop-blur px-2.5 py-1 text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+          >
+            <Code2 className="size-3.5 text-lime-400" />
+            <span className="text-[11px] font-semibold tracking-wide">DEV</span>
+          </Button>
+
+          {showStatus && (
           <button
             type="button"
             onClick={status === "error" ? onOpenSettings : undefined}
@@ -124,5 +141,10 @@ export function ThemeTopBar({
         </Button>
       </div>
     </header>
+    <DeveloperCompanion
+      isOpen={showDevCompanion}
+      onClose={() => setShowDevCompanion(false)}
+    />
+  </>
   );
 }

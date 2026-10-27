@@ -2,7 +2,6 @@ import { REPO } from "../lib/download";
 
 const NAV_LINKS = [
   { href: "#features", label: "Features", external: false },
-  { href: "#themes", label: "Themes", external: false },
   { href: `${REPO}#readme`, label: "Docs", external: true },
   { href: `${REPO}/releases`, label: "Changelog", external: true },
 ];

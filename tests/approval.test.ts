@@ -63,7 +63,9 @@ describe("Talkit Approve — Voice Decisions & Coding Agent Server", () => {
       const testPort = 51234;
       await startApprovalServer({ port: testPort, host: "127.0.0.1", timeoutMs: 5000 });
 
-      const res = await fetch(`http://127.0.0.1:${testPort}/v1/health`);
+      const res = await fetch(`http://127.0.0.1:${testPort}/v1/health`, {
+        headers: { Connection: "close" },
+      });
       assert.equal(res.status, 200);
       const json = (await res.json()) as { ok?: boolean; service?: string };
       assert.equal(json.ok, true);

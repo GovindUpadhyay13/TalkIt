@@ -87,6 +87,15 @@ export function launchDesktopApp(appNameOrAlias: string): Promise<{ ok: boolean;
   });
 }
 
+export function isDirectAppCommand(rawInput: string): boolean {
+  const cleaned = rawInput.trim().replace(/^[,.:;!?]+|[,.:;!?]+$/g, "").trim().toLowerCase();
+  if (WINDOWS_APP_ALIASES[cleaned]) return true;
+  const openAppMatch = cleaned.match(/^(?:open|launch|start|run)\s+(?:the\s+)?([a-z0-9._ -]+)$/i);
+  if (!openAppMatch) return false;
+  const target = openAppMatch[1].trim();
+  return Boolean(WINDOWS_APP_ALIASES[target]);
+}
+
 /**
  * Reliably opens a URL in the user's default browser (via Electron shell or native OS start).
  */

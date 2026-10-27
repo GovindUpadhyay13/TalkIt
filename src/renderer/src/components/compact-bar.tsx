@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Maximize2, Mic, MicOff, Settings, X } from "lucide-react";
+import { Code2, Maximize2, Mic, MicOff, Settings, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToolCardLayer } from "@skills/tool-card-layer";
 import type { DexStatus } from "@/lib/dex/state";
@@ -62,6 +62,17 @@ export function CompactBar({
   const hasText = value.trim().length > 0;
   const rawExpanded = hovered || pinned || hasText;
   const [expanded, setExpanded] = useState(false);
+  const [devEnabled, setDevEnabled] = useState(false);
+
+  useEffect(() => {
+    if (window.opendex?.devMode) {
+      window.opendex.devMode
+        .getState()
+        .then((s) => setDevEnabled(s.enabled))
+        .catch(console.error);
+      return window.opendex.devMode.onStateChanged((s) => setDevEnabled(s.enabled));
+    }
+  }, []);
 
   useEffect(() => {
     if (rawExpanded) {
@@ -201,6 +212,31 @@ export function CompactBar({
                 exit={{ opacity: 0, scale: 0.6, width: 0 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
               >
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (window.opendex?.devMode) {
+                      const res = await window.opendex.devMode.toggle();
+                      setDevEnabled(res.enabled);
+                    }
+                  }}
+                  className={cn(
+                    "text-[10px] font-mono px-2 py-0.5 rounded-full border transition-all flex items-center gap-1 select-none",
+                    devEnabled
+                      ? "bg-lime-400/20 text-lime-300 border-lime-400/40"
+                      : "bg-zinc-800/60 text-zinc-400 border-zinc-700/60 hover:text-zinc-200"
+                  )}
+                  title={
+                    devEnabled
+                      ? "Developer Mode ON: Click to stop monitoring"
+                      : "Developer Mode OFF: Click to enable on-screen monitoring"
+                  }
+                >
+                  <Code2 className="size-3" />
+                  <span>{devEnabled ? "DEV ON" : "DEV OFF"}</span>
+                </button>
                 <Button
                   variant="ghost"
                   size="icon-sm"

@@ -22,6 +22,11 @@ import type {
   SecretName,
   SttProvider,
 } from "../main/config/schema";
+import type {
+  DevModeState,
+  DevCatchMeUpSummary,
+  DevImplementationPlanSummary,
+} from "../main/developer/types";
 
 export interface ChatRequest {
   messages: ChatMessage[];
@@ -345,6 +350,23 @@ const opendex = {
     decision: PermissionDecision,
   ): void {
     ipcRenderer.send(IPC.permissionRespond, { id, skillId, decision });
+  },
+
+  /** Developer Mode: Background companion for coding sessions */
+  devMode: {
+    getState: (): Promise<DevModeState> => ipcRenderer.invoke(IPC.devModeGetState),
+    toggle: (enabled?: boolean): Promise<DevModeState> =>
+      ipcRenderer.invoke(IPC.devModeToggle, enabled),
+    catchMeUp: (): Promise<DevCatchMeUpSummary> => ipcRenderer.invoke(IPC.devModeCatchMeUp),
+    getPlan: (): Promise<DevImplementationPlanSummary> =>
+      ipcRenderer.invoke(IPC.devModeGetPlan),
+    ask: (question: string): Promise<string> => ipcRenderer.invoke(IPC.devModeAsk, question),
+    clear: (): Promise<void> => ipcRenderer.invoke(IPC.devModeClear),
+    onStateChanged: (handler: (state: DevModeState) => void): (() => void) => {
+      const listener = (_e: IpcRendererEvent, state: DevModeState) => handler(state);
+      ipcRenderer.on(IPC.devModeStateChanged, listener);
+      return () => ipcRenderer.removeListener(IPC.devModeStateChanged, listener);
+    },
   },
 };
 

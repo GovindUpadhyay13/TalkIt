@@ -20,6 +20,7 @@ import { RealtimeVoiceSession } from "./realtime/realtime-session";
 import type { SttEngine, WakeEngine } from "./engines/types";
 import type { DexStatus, TranscriptTurn } from "./state";
 import { parseWisprFlowChunk, isWisprResumeCommand } from "./wispr-flow";
+import { handleDevModeVoiceQuery } from "./dev-mode-router";
 import { formatToolCall } from "../format-tool-call";
 import type { ToolInvocation } from "@skills/tool-view";
 import {
@@ -510,6 +511,38 @@ export function useDex(options: UseDexOptions): UseDexResult {
         }
         tts.enqueue(text);
       };
+
+      // Developer Mode session queries ("Catch me up", "Give me the implementation plan", etc.)
+      try {
+        if (window.opendex?.devMode) {
+          const devResult = await handleDevModeVoiceQuery(userText, window.opendex.devMode);
+          if (devResult.handled && devResult.reply) {
+            const reply = devResult.reply;
+            updateLastAssistant(reply);
+            messagesRef.current.push({ role: "assistant", content: reply });
+            setLiveCaption(devResult.isCatchMeUp ? `⚡ [Developer Mode] ${reply}` : `📋 [Implementation Plan] ${reply}`);
+            setSpokenCaption(reply);
+            setStatus("speaking");
+            speak(reply);
+
+            const checkDrain = () =>
+              new Promise<void>((resolve) => {
+                const tick = () => {
+                  if (!tts.isSpeaking) return resolve();
+                  setTimeout(tick, 100);
+                };
+                tick();
+              });
+            await checkDrain();
+            await new Promise((r) => setTimeout(r, 400));
+            runningCommandRef.current = null;
+            startModeRef.current?.("wake");
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("[TalkIt] Developer Mode query check failed:", err);
+      }
 
       // Direct desktop command execution (instant OS action without cloud LLM round-trip)
       try {

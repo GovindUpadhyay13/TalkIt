@@ -73,6 +73,14 @@ export const IPC = {
   // notch renderer → main: give the notch window OS keyboard focus (it's shown
   // with showInactive, so typing needs an explicit focus first).
   notchFocus: "notch:focus",
+  // Developer Mode (Background Development Companion)
+  devModeGetState: "devmode:get-state",
+  devModeToggle: "devmode:toggle",
+  devModeCatchMeUp: "devmode:catch-me-up",
+  devModeGetPlan: "devmode:get-plan",
+  devModeAsk: "devmode:ask",
+  devModeClear: "devmode:clear",
+  devModeStateChanged: "devmode:state-changed",
   // Overlay HUD: renderer → main, toggle click-through so the Stop button is
   // clickable while the rest of the overlay stays pass-through.
   overlaySetInteractive: "overlay:set-interactive",

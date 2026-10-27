@@ -25,6 +25,8 @@ import { streamChat } from "./agent/chat";
 import { resolveModel, checkAppleAvailability, probeOllama } from "./agent/llm/resolve-model";
 import { insertDictatedText } from "./dictation/text-injector";
 import { executeDirectCommand } from "./agent/direct-executor";
+import { devModeController } from "./developer/controller";
+import type { DevModeState } from "./developer/types";
 import {
   startApprovalServer,
   setApprovalNotifier,
@@ -474,6 +476,16 @@ function broadcastConfig() {
   }
 }
 
+function broadcastDevModeState(state: DevModeState) {
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (!win.isDestroyed()) win.webContents.send(IPC.devModeStateChanged, state);
+  }
+}
+
+devModeController.onStateChange((state) => {
+  broadcastDevModeState(state);
+});
+
 // Re-broadcast the latest session snapshot to view-only surfaces.
 // The upper toggle (notchWindow) is the single unified toggle that displays all changes.
 // We do not pop up another separate overlay window.
@@ -758,6 +770,38 @@ function registerIpc() {
     return executeDirectCommand(command);
   });
 
+  // Talkit Developer Mode: Background companion for coding sessions
+  ipcMain.handle(IPC.devModeGetState, () => {
+    return devModeController.getState();
+  });
+
+  ipcMain.handle(IPC.devModeToggle, async (_event, enabled?: boolean) => {
+    if (typeof enabled === "boolean") {
+      if (enabled) {
+        return devModeController.enable();
+      } else {
+        return devModeController.disable();
+      }
+    }
+    return devModeController.toggle();
+  });
+
+  ipcMain.handle(IPC.devModeCatchMeUp, () => {
+    return devModeController.catchMeUp();
+  });
+
+  ipcMain.handle(IPC.devModeGetPlan, () => {
+    return devModeController.getImplementationPlan();
+  });
+
+  ipcMain.handle(IPC.devModeAsk, (_event, question: string) => {
+    return devModeController.answerSessionQuestion(question);
+  });
+
+  ipcMain.handle(IPC.devModeClear, () => {
+    return devModeController.clearSession();
+  });
+
   // Permission gate: the renderer answers a sensitive-tool prompt or external agent request.
   ipcMain.on(
     IPC.permissionRespond,
@@ -980,6 +1024,7 @@ app.on("before-quit", () => {
 });
 
 app.on("will-quit", () => {
+  devModeController.disable();
   globalShortcut.unregisterAll();
 });
 
