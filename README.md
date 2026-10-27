@@ -12,7 +12,7 @@
 [![Platform: Windows 10/11](https://img.shields.io/badge/Platform-Windows%2010%2F11%20%7C%20macOS%20%7C%20Linux-181f18?style=flat-square&logo=windows&logoColor=0078D4)](#quick-start-windows-first)
 [![Runtime: Electron 42](https://img.shields.io/badge/Runtime-Electron%2042%20%7C%20Node%2020%2B-181f18?style=flat-square&logo=electron&logoColor=9FEAF9)](https://www.electronjs.org/)
 [![AI Engine: Google Gemma](https://img.shields.io/badge/AI%20Engine-Google%20Gemma%20%26%20Gemini-181f18?style=flat-square&logo=google&logoColor=C5F467)](#gemma-architecture--model-backends)
-[![Tests: 27 Passing](https://img.shields.io/badge/Tests-27%20Passing-181f18?style=flat-square&logo=node.js&logoColor=C5F467)](#testing--verification)
+[![Tests: 28 Passing](https://img.shields.io/badge/Tests-28%20Passing-181f18?style=flat-square&logo=node.js&logoColor=C5F467)](#testing--verification)
 
 **Team**: Exodus &nbsp;|&nbsp; **Author**: Govind Upadhyay ([@GovindUpadhyay13](https://github.com/GovindUpadhyay13))
 
@@ -224,7 +224,7 @@ pnpm install
    Or simply enter the key in the TalkIt Onboarding Wizard or Settings UI (<kbd>⚙️</kbd>).
 
 ### 3. Run Automated Tests
-Verify that all 27 unit and integration tests pass:
+Verify that all 28 unit and integration tests pass:
 ```bash
 pnpm test
 ```
@@ -353,7 +353,7 @@ TalkIt maintains a verified unit and integration test suite in the `tests/` dire
 pnpm test
 ```
 
-### Verified Test Suite Output (27/27 Passing)
+### Verified Test Suite Output (28/28 Passing)
 ```text
 ▶ Talkit Approve — Voice Decisions & Coding Agent Server
   ▶ parseVoiceDecision
@@ -387,6 +387,7 @@ pnpm test
   ✔ validates openUrl to reject dangerous non-http protocols (javascript:, file:, smb:)
   ✔ notesSkill successfully creates, lists, and reads notes
   ✔ executeDirectCommand parses and matches calculator and desktop app intents
+  ✔ executeDirectCommand parses and executes Google search queries directly
 ✔ Talkit Execute — Desktop Automation & Skills
 
 ▶ Google Gemma & Gemini LLM Provider
@@ -404,7 +405,7 @@ pnpm test
   ✔ has TalkIt configured as the assistant name
 ✔ Obsidian Lime Theme System
 
-ℹ tests 27 | suites 8 | pass 27 | fail 0 | duration_ms 2474
+ℹ tests 28 | suites 8 | pass 28 | fail 0 | duration_ms 1864
 ```
 
 ---

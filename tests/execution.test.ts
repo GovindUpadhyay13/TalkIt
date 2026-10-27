@@ -91,4 +91,33 @@ describe("Talkit Execute — Desktop Automation & Skills", () => {
     const nonDirectRes = await executeDirectCommand("write a python script to calculate fibonacci");
     assert.equal(nonDirectRes.matched, false);
   });
+
+  it("executeDirectCommand parses and executes Google search queries directly", async () => {
+    const { executeDirectCommand, extractGoogleSearchQuery } = await import("../src/main/agent/direct-executor");
+
+    // Query extraction unit tests
+    assert.equal(extractGoogleSearchQuery("google search elon musk"), "elon musk");
+    assert.equal(extractGoogleSearchQuery("search on google for quantum computing"), "quantum computing");
+    assert.equal(extractGoogleSearchQuery("search best laptops 2026 on google"), "best laptops 2026");
+    assert.equal(extractGoogleSearchQuery("look up weather in Paris on google"), "weather in Paris");
+    assert.equal(extractGoogleSearchQuery("open google and search for nextjs"), "nextjs");
+    assert.equal(extractGoogleSearchQuery("open google"), "");
+    assert.equal(extractGoogleSearchQuery("google"), "");
+
+    // Execution results
+    const searchRes = await executeDirectCommand("google search elon musk");
+    assert.equal(searchRes.matched, true);
+    assert.equal(searchRes.action, "web_search");
+    assert.ok(searchRes.reply?.includes("elon musk"));
+
+    const searchTrailingRes = await executeDirectCommand("search for python tutorials on google");
+    assert.equal(searchTrailingRes.matched, true);
+    assert.equal(searchTrailingRes.action, "web_search");
+    assert.ok(searchTrailingRes.reply?.includes("python tutorials"));
+
+    const openGoogleRes = await executeDirectCommand("open google");
+    assert.equal(openGoogleRes.matched, true);
+    assert.equal(openGoogleRes.action, "open_url");
+    assert.ok(openGoogleRes.reply?.includes("Google"));
+  });
 });

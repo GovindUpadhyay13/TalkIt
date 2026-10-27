@@ -17,9 +17,16 @@ export const webSearchSkill: Skill = {
       execute: async ({ query }: { query: string }) => {
         const apiKey = process.env.TAVILY_API_KEY;
         if (!apiKey) {
+          // If no Tavily API key is configured, perform Google search directly in user's browser
+          const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query.trim())}`;
+          const { openUrlInBrowser } = await import("../../main/agent/direct-executor");
+          await openUrlInBrowser(searchUrl);
           return {
-            error:
-              "Web search is unavailable — the operator has not configured a TAVILY_API_KEY.",
+            ok: true,
+            action: "google_search",
+            opened: searchUrl,
+            query: query.trim(),
+            note: `Opened Google search in your web browser for "${query.trim()}".`,
           };
         }
         const res = await fetch("https://api.tavily.com/search", {
