@@ -4,8 +4,11 @@
 
 ### A Windows-First, Voice-Native Desktop Copilot & Ambient Developer Companion
 
+**Built using Wispr Flow & powered by Wispr Flow for voice transcription.**
+
 [![Built for No Hands: The Wispr Challenge](https://img.shields.io/badge/Submission-No_Hands%3A_The_Wispr_Challenge-FF5722?style=for-the-badge&logo=code)](https://wemakedevs.org)
-[![Wispr Flow Voice Typing](https://img.shields.io/badge/Dictation-Wispr_Flow_Voice_Typing-C5F467?style=for-the-badge&logo=soundcharts&logoColor=black)](https://wisprflow.ai)
+[![Built with Wispr Flow](https://img.shields.io/badge/Built_With-Wispr_Flow-000000?style=for-the-badge&logo=soundcharts&logoColor=C5F467)](https://wisprflow.ai)
+[![Wispr Flow Transcription](https://img.shields.io/badge/Transcription-Wispr_Flow_Voice-C5F467?style=for-the-badge&logo=soundcharts&logoColor=black)](https://wisprflow.ai)
 [![Google Gemma & Gemini Powered](https://img.shields.io/badge/LLM-Google_Gemma_%26_Gemini-4285F4?style=for-the-badge&logo=google)](https://ai.google.dev/gemma)
 [![Tests Passing](https://img.shields.io/badge/Tests-44%2F44_Passing-10B981?style=for-the-badge&logo=checkmarx)](https://github.com/GovindUpadhyay13/TalkIt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
@@ -20,6 +23,8 @@
 
 > *"If you can speak it, you can build it."* — **WeMakeDevs & Wispr Flow**
 
+> 💡 **Wispr Flow Integration**: **TalkIt was built using Wispr Flow** to drive the development process hands-free, and **Wispr Flow powers TalkIt's voice transcription** to deliver continuous, real-time voice typing into any application.
+
 Software developers spend their days constantly context-switching between code editors (VS Code, Antigravity, Cursor), terminal prompts, browser tabs, and autonomous AI agents. While modern background agents can write code rapidly, the developer interaction model remains fragmented:
 
 1. **Repetitive Typing Fatigue**: Writing code comments, documentation, commit messages, and prompt refinements manually when voice dictation is 3× faster.
@@ -27,7 +32,7 @@ Software developers spend their days constantly context-switching between code e
 3. **Agent Blindness & Unverified Claims**: Autonomous coding agents often claim an action was completed when it wasn't, or leave developers lost about what was actually verified versus what failed.
 4. **Manual Git Overhead**: Staging modified files, writing commit messages, and pushing to remotes over and over again.
 
-**TalkIt** was conceived and built for **The Wispr Challenge** to eliminate this friction entirely. It brings a unified, voice-native layer to your desktop, pairing **Wispr Flow continuous voice dictation** with **direct desktop automation** and an **ambient, evidence-grounded Developer Companion** for coding environments.
+**TalkIt** was conceived and built for **The Wispr Challenge** to eliminate this friction entirely. It brings a unified, voice-native layer to your desktop, using **Wispr Flow to build TalkIt and power its voice transcription**, paired with **direct desktop automation** and an **ambient, evidence-grounded Developer Companion** for coding environments.
 
 ---
 
@@ -45,6 +50,7 @@ flowchart TD
 
     subgraph Modes ["3 Distinct Operational Modes"]
         WriteMode["✍️ Write Mode (Wispr Flow)
+        Voice Transcription Powered by Wispr Flow
         Continuous Voice Typing into Active App
         Smart Pause ('Whisper wait') & Resume ('TalkIt continue')"]
         
@@ -77,10 +83,12 @@ flowchart TD
 
 ---
 
-### 1. ✍️ Write Mode: Wispr Flow Continuous Voice Typing
+### 1. ✍️ Write Mode: Powered by Wispr Flow Voice Transcription
 
-TalkIt turns your voice into natural, continuous keyboard input directly into any active application (VS Code, Antigravity, Cursor, Slack, Terminal, Obsidian, Chrome):
+**Wispr Flow powers TalkIt's voice transcription**, turning speech into real-time text directly into any active application (VS Code, Antigravity, Cursor, Slack, Terminal, Obsidian, Chrome):
 
+- **Powered by Wispr Flow**: 100% of TalkIt's voice transcription is driven by Wispr Flow, providing high-accuracy, continuous speech-to-text with zero typing effort.
+- **Built with Wispr Flow**: Developed as a core submission for *"No Hands: The Wispr Challenge"*, Wispr Flow was used throughout the development process to dictate code, prompts, and architecture hands-free.
 - **Continuous Stream Dictation**: Dictate fluidly without stopping. TalkIt automatically injects text into the active cursor position.
 - **Voice Flow Control**:
   - Say `"Whisper wait"` &rarr; TalkIt pauses dictation, commits pending text, and lets you inspect or type on the physical keyboard.
@@ -395,6 +403,7 @@ TalkIt maintains a rigorous automated test suite in `tests/`:
 ## 📜 License & Acknowledgments
 
 TalkIt is licensed under the [MIT License](LICENSE).  
-Developed by **Govind Upadhyay** for **"No Hands: The Wispr Challenge"** organized by **WeMakeDevs & Wispr Flow**.
+Developed by **Govind Upadhyay** for **"No Hands: The Wispr Challenge"** organized by **WeMakeDevs & Wispr Flow**.  
+Built using **Wispr Flow** to build TalkIt and powered by **Wispr Flow** for its voice transcription.
 
 *Designed to keep developers in flow. If you can speak it, you can build it.*
