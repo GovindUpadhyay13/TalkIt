@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Code2, Minimize2, Mic, MicOff, Settings, SquarePen, X } from "lucide-react";
+import { Code2, Minimize2, Mic, MicOff, Settings, SquarePen, X, Zap } from "lucide-react";
 import { StatusPill } from "@/components/status-bar";
 import { Button } from "@/components/ui/button";
 import { TalkItBrand } from "@/components/brand/talkit-logo";
@@ -22,6 +22,8 @@ export function ThemeTopBar({
   onToggleMute,
   onMinimize,
   onNewConversation,
+  isExecutionMode,
+  onToggleExecutionMode,
 }: {
   name?: string;
   status: DexStatus;
@@ -36,6 +38,8 @@ export function ThemeTopBar({
   onMinimize?: () => void;
   /** Start a fresh conversation (dismiss the current turn). Hidden when omitted. */
   onNewConversation?: () => void;
+  isExecutionMode?: boolean;
+  onToggleExecutionMode?: (enabled?: boolean) => void;
 }) {
   const isListeningOrSpeaking = status === "active_listening" || status === "speaking";
   const [showDevCompanion, setShowDevCompanion] = useState(false);
@@ -56,6 +60,29 @@ export function ThemeTopBar({
           )}
         </div>
         <div className="titlebar-no-drag pointer-events-auto relative z-40 flex shrink-0 items-center gap-2">
+          {/* Execution Mode On-Screen Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onToggleExecutionMode?.()}
+            aria-label="Execution Mode Toggle"
+            title={
+              isExecutionMode
+                ? "Execution Mode ON: Voice commands execute direct actions. Click to switch to Typing mode."
+                : "Execution Mode OFF: Click to enable direct desktop command execution."
+            }
+            className={`rounded-full text-xs font-mono backdrop-blur px-2.5 py-1 flex items-center gap-1.5 transition-all ${
+              isExecutionMode
+                ? "bg-amber-400/20 text-amber-300 border-amber-400/40 hover:bg-amber-400/30 shadow-[0_0_10px_rgba(251,191,36,0.2)]"
+                : "bg-dex-surface/70 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Zap className={`size-3.5 ${isExecutionMode ? "text-amber-400" : "text-muted-foreground"}`} />
+            <span className="text-[11px] font-semibold tracking-wide">
+              {isExecutionMode ? "EXEC ON" : "EXEC"}
+            </span>
+          </Button>
+
           {/* Developer Mode On-Screen Companion Toggle/Opener */}
           <Button
             variant="outline"

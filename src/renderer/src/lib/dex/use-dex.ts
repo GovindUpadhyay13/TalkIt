@@ -20,7 +20,7 @@ import { RealtimeVoiceSession } from "./realtime/realtime-session";
 import type { SttEngine, WakeEngine } from "./engines/types";
 import type { DexStatus, TranscriptTurn } from "./state";
 import { parseWisprFlowChunk, isWisprResumeCommand } from "./wispr-flow";
-import { handleDevModeVoiceQuery } from "./dev-mode-router";
+import { handleDevModeVoiceQuery, isDevSessionQuery } from "./dev-mode-router";
 import { formatToolCall } from "../format-tool-call";
 import type { ToolInvocation } from "@skills/tool-view";
 import {
@@ -148,6 +148,8 @@ export interface UseDexResult {
    *  speech-synced display). */
   spokenCaption: string;
   isMuted: boolean;
+  isExecutionMode: boolean;
+  toggleExecutionMode: (enabled?: boolean) => void;
   audioBlocked: boolean;
   briefingActive: boolean;
   /** Local model download/load progress (Whisper / Vosk). */
@@ -192,6 +194,8 @@ export function useDex(options: UseDexOptions): UseDexResult {
   const [spokenCaption, setSpokenCaption] = useState("");
   const spokenFreshRef = useRef(true);
   const [isMuted, setIsMuted] = useState(false);
+  const [isExecutionMode, setIsExecutionMode] = useState(false);
+  const isExecutionModeRef = useRef(false);
   const [audioBlocked, setAudioBlocked] = useState(false);
   const [briefingActive, setBriefingActive] = useState(false);
   const [loadingModel, setLoadingModel] = useState<ModelLoadingState>({
@@ -1198,7 +1202,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
             setLiveCaption("Transcribing (Wispr Flow)…");
 
             let isPaused = false;
-            let isExecutionMode = false;
+            let isExecutionMode = isExecutionModeRef.current;
 
             while (!ac.signal.aborted && !mutedRef.current) {
               if (isPaused) {
@@ -1259,6 +1263,8 @@ export function useDex(options: UseDexOptions): UseDexResult {
               // Mode switch to typing mode
               if (parsed.type === "switch_typing") {
                 isExecutionMode = false;
+                isExecutionModeRef.current = false;
+                setIsExecutionMode(false);
                 setStatus("writing");
                 setLiveCaption("✍️ Typing mode active (Wispr Flow)");
                 continue;
@@ -1267,6 +1273,8 @@ export function useDex(options: UseDexOptions): UseDexResult {
               // Execution mode detected (e.g. "Hey TalkIt, execution mode open notepad" or "execution mode")
               if (parsed.type === "execute") {
                 isExecutionMode = true;
+                isExecutionModeRef.current = true;
+                setIsExecutionMode(true);
                 if (parsed.textBefore) {
                   setLiveCaption(parsed.textBefore);
                   appendTurn("user", parsed.textBefore);
@@ -1291,6 +1299,15 @@ export function useDex(options: UseDexOptions): UseDexResult {
                   setLiveCaption("⚡ Execution mode active · State your task or command...");
                   continue;
                 }
+              }
+
+              // If developer session command ("catch me up", "implementation plan", "push to github"), execute directly
+              if (isDevSessionQuery(text)) {
+                setStatus("thinking");
+                setLiveCaption("⚡ [Developer Mode] " + text.trim());
+                await runCommand(text.trim());
+                startModeRef.current?.("wake");
+                break;
               }
 
               // If already in execution mode, execute this utterance instead of typing it
@@ -1922,6 +1939,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
     window.opendex.publishSessionState({
       status,
       muted: isMuted,
+      isExecutionMode,
       // Respect the user's "show tool activity" toggle: when off, the overlay
       // still shows status/Stop but no per-action hints.
       activity: showToolActivity
@@ -1937,6 +1955,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
   }, [
     status,
     isMuted,
+    isExecutionMode,
     toolActivity,
     toolInvocations,
     liveCaption,
@@ -1955,6 +1974,7 @@ export function useDex(options: UseDexOptions): UseDexResult {
     liveCaption,
     spokenCaption,
     isMuted,
+    isExecutionMode,
     audioBlocked,
     briefingActive,
     loadingModel,
@@ -1969,5 +1989,15 @@ export function useDex(options: UseDexOptions): UseDexResult {
     toggleMute,
     toolInvocations,
     newConversation,
+    toggleExecutionMode: (enabled?: boolean) => {
+      const next = typeof enabled === "boolean" ? enabled : !isExecutionModeRef.current;
+      isExecutionModeRef.current = next;
+      setIsExecutionMode(next);
+      if (next) {
+        setLiveCaption("⚡ Execution mode active · State your command");
+      } else {
+        setLiveCaption("✍️ Typing mode active (Wispr Flow)");
+      }
+    },
   };
 }

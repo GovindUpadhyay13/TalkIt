@@ -79,6 +79,13 @@ export function NotchApp() {
       agentName={agentName}
       StatusIndicator={StatusIndicator}
       isMuted={state?.muted ?? false}
+      isExecutionMode={state?.isExecutionMode ?? false}
+      onToggleExecutionMode={() =>
+        window.opendex.sendViewCommand({
+          type: "toggleExecutionMode",
+          enabled: !state?.isExecutionMode,
+        })
+      }
       onSubmitText={(text) => window.opendex.sendViewCommand({ type: "submitText", text })}
       onToggleMute={() => window.opendex.sendViewCommand({ type: "toggleMute" })}
       onNewConversation={() => window.opendex.sendViewCommand({ type: "newConversation" })}

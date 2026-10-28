@@ -798,6 +798,10 @@ function registerIpc() {
     return devModeController.answerSessionQuestion(question);
   });
 
+  ipcMain.handle(IPC.devModeGitPush, async (_event, commitMessage?: string) => {
+    return devModeController.gitPush(commitMessage);
+  });
+
   ipcMain.handle(IPC.devModeClear, () => {
     return devModeController.clearSession();
   });

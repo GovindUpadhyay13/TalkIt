@@ -33,6 +33,8 @@ export interface DexThemeProps {
   onMinimize: () => void;
   /** Dismiss the current turn and start a fresh conversation. */
   onNewConversation: () => void;
+  isExecutionMode?: boolean;
+  onToggleExecutionMode?: (enabled?: boolean) => void;
 }
 
 // A theme is fully self-contained: its folder (src/.../themes/<id>/index.tsx)

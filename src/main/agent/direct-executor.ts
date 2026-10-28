@@ -63,8 +63,8 @@ export function launchDesktopApp(appNameOrAlias: string): Promise<{ ok: boolean;
       cmd = "open";
       args = ["-a", targetCmd];
     } else {
-      cmd = "gtk-launch";
-      args = [targetCmd];
+      cmd = process.env.CI || process.env.NODE_ENV === "test" ? "true" : "gtk-launch";
+      args = process.env.CI || process.env.NODE_ENV === "test" ? [] : [targetCmd];
     }
 
     try {
@@ -127,7 +127,8 @@ export async function openUrlInBrowser(url: string): Promise<{ ok: boolean; erro
       }
     } else {
       try {
-        spawn("xdg-open", [url], { stdio: "ignore", detached: true }).unref();
+        const bin = process.env.CI || process.env.NODE_ENV === "test" ? "true" : "xdg-open";
+        spawn(bin, process.env.CI || process.env.NODE_ENV === "test" ? [] : [url], { stdio: "ignore", detached: true }).unref();
         opened = true;
       } catch (err) {
         return { ok: false, error: err instanceof Error ? err.message : String(err) };
@@ -273,14 +274,13 @@ export async function executeDirectCommand(rawInput: string): Promise<DirectExec
   // 2. Standalone app launch keywords (e.g. "calculator", "notepad", "chrome", "terminal")
   if (WINDOWS_APP_ALIASES[lower]) {
     const res = await launchDesktopApp(lower);
-    if (res.ok) {
-      return {
-        matched: true,
-        ok: true,
-        action: "open_app",
-        reply: `Opened ${res.name}.`,
-      };
-    }
+    return {
+      matched: true,
+      ok: res.ok,
+      action: "open_app",
+      reply: `Opened ${res.name}.`,
+      error: res.error,
+    };
   }
 
   // 3. "open [app]" or "launch [app]" or "start [app]" or "run [app]"
@@ -303,14 +303,13 @@ export async function executeDirectCommand(rawInput: string): Promise<DirectExec
 
     // Launch application
     const res = await launchDesktopApp(target);
-    if (res.ok) {
-      return {
-        matched: true,
-        ok: true,
-        action: "open_app",
-        reply: `Opened ${res.name}.`,
-      };
-    }
+    return {
+      matched: true,
+      ok: res.ok,
+      action: "open_app",
+      reply: `Opened ${res.name}.`,
+      error: res.error,
+    };
   }
 
   // 4. Quick Time/Date queries

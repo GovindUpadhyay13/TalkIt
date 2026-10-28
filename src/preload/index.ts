@@ -26,6 +26,7 @@ import type {
   DevModeState,
   DevCatchMeUpSummary,
   DevImplementationPlanSummary,
+  DevGitPushResult,
 } from "../main/developer/types";
 
 export interface ChatRequest {
@@ -362,6 +363,8 @@ const opendex = {
       ipcRenderer.invoke(IPC.devModeGetPlan),
     ask: (question: string): Promise<string> => ipcRenderer.invoke(IPC.devModeAsk, question),
     clear: (): Promise<void> => ipcRenderer.invoke(IPC.devModeClear),
+    gitPush: (commitMessage?: string): Promise<DevGitPushResult> =>
+      ipcRenderer.invoke(IPC.devModeGitPush, commitMessage),
     onStateChanged: (handler: (state: DevModeState) => void): (() => void) => {
       const listener = (_e: IpcRendererEvent, state: DevModeState) => handler(state);
       ipcRenderer.on(IPC.devModeStateChanged, listener);

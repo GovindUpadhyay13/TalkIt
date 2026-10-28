@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Code2, Maximize2, Mic, MicOff, Settings, X } from "lucide-react";
+import { Code2, Maximize2, Mic, MicOff, Settings, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToolCardLayer } from "@skills/tool-card-layer";
 import type { DexStatus } from "@/lib/dex/state";
@@ -32,9 +32,11 @@ export function CompactBar({
   toolInvocations,
   agentName,
   isMuted,
+  isExecutionMode,
   StatusIndicator,
   onSubmitText,
   onToggleMute,
+  onToggleExecutionMode,
   onNewConversation,
   onExpand,
   onOpenSettings,
@@ -44,10 +46,12 @@ export function CompactBar({
   toolInvocations: SessionToolInvocation[];
   agentName: string;
   isMuted: boolean;
+  isExecutionMode?: boolean;
   /** The active theme's status indicator (defaults to StatusDot in NotchApp). */
   StatusIndicator: ComponentType<{ status: DexStatus }>;
   onSubmitText: (text: string) => void;
   onToggleMute: () => void;
+  onToggleExecutionMode?: () => void;
   onNewConversation: () => void;
   onExpand: () => void;
   onOpenSettings: () => void;
@@ -212,6 +216,28 @@ export function CompactBar({
                 exit={{ opacity: 0, scale: 0.6, width: 0 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
               >
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleExecutionMode?.();
+                  }}
+                  className={cn(
+                    "text-[10px] font-mono px-2 py-0.5 rounded-full border transition-all flex items-center gap-1 select-none cursor-pointer",
+                    isExecutionMode
+                      ? "bg-amber-400/20 text-amber-300 border-amber-400/40"
+                      : "bg-zinc-800/60 text-zinc-400 border-zinc-700/60 hover:text-zinc-200"
+                  )}
+                  title={
+                    isExecutionMode
+                      ? "Execution Mode ON: Voice commands execute direct actions. Click to switch to Typing mode."
+                      : "Execution Mode OFF: Click to enable direct desktop action execution."
+                  }
+                >
+                  <Zap className="size-3" />
+                  <span>{isExecutionMode ? "EXEC ON" : "EXEC OFF"}</span>
+                </button>
                 <button
                   type="button"
                   tabIndex={-1}

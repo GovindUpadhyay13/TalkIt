@@ -147,3 +147,12 @@ export interface DevModeState {
   activePendingApprovalsCount: number;
   latestSummary?: DevCatchMeUpSummary;
 }
+
+export interface DevGitPushResult {
+  ok: boolean;
+  commitHash?: string;
+  filesChanged?: number;
+  message?: string;
+  branch?: string;
+  error?: string;
+}

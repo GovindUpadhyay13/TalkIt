@@ -2,8 +2,10 @@ import { AntigravitySessionAdapter, type AntigravityAdapterOptions } from "./ada
 import { ApprovalServerAdapter } from "./adapters/approval-adapter";
 import type { SessionCollector } from "./collector";
 import { DeveloperSessionStore } from "./session-store";
+import { devModeGitPush } from "./git-sync";
 import type {
   DevCatchMeUpSummary,
+  DevGitPushResult,
   DevImplementationPlanSummary,
   DevModeState,
   DevSessionEvent,
@@ -314,6 +316,36 @@ export class DeveloperModeController {
   public clearSession(): void {
     this.store.clear();
     this.notifyStateChange();
+  }
+
+  /**
+   * In Developer Mode: Directly stages all files (`git add .`), creates a commit,
+   * and pushes changes to GitHub.
+   */
+  public async gitPush(commitMessage?: string): Promise<DevGitPushResult> {
+    const res = await devModeGitPush(commitMessage, this.store.getWorkspacePath());
+    if (res.ok) {
+      // Record verification event in store
+      this.store.ingest({
+        id: `git-push-${Date.now()}`,
+        sessionId: this.store.getSessionId(),
+        timestamp: Date.now(),
+        source: "custom_log",
+        type: "command_completed",
+        content: res.message || "Git commit & push to GitHub completed successfully.",
+        status: "complete",
+        confidence: 1.0,
+        payload: {
+          command: "git push",
+          commitHash: res.commitHash,
+          branch: res.branch,
+          filesChanged: res.filesChanged,
+          exitCode: 0,
+        },
+      });
+      this.notifyStateChange();
+    }
+    return res;
   }
 
   public getStore(): DeveloperSessionStore {

@@ -80,6 +80,7 @@ export const IPC = {
   devModeGetPlan: "devmode:get-plan",
   devModeAsk: "devmode:ask",
   devModeClear: "devmode:clear",
+  devModeGitPush: "devmode:git-push",
   devModeStateChanged: "devmode:state-changed",
   // Overlay HUD: renderer → main, toggle click-through so the Stop button is
   // clickable while the rest of the overlay stays pass-through.
@@ -159,6 +160,7 @@ export interface SessionToolInvocation {
 export interface SessionState {
   status: string;
   muted: boolean;
+  isExecutionMode?: boolean;
   activity: SessionActivity[];
   /** Tool calls + results this turn — view surfaces render the latest as a card. */
   toolInvocations: SessionToolInvocation[];
@@ -180,7 +182,8 @@ export type ViewCommand =
   | { type: "submitText"; text: string }
   | { type: "toggleMute" }
   | { type: "newConversation" }
-  | { type: "expand" };
+  | { type: "expand" }
+  | { type: "toggleExecutionMode"; enabled?: boolean };
 
 /** The delegation tool a realtime session uses to hand a task to the pipeline
  *  agent (full toolset incl. computer-use). Declared here — the shared IPC

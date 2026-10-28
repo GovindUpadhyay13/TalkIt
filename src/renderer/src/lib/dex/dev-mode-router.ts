@@ -1,4 +1,4 @@
-import type { DevCatchMeUpSummary, DevImplementationPlanSummary, DevModeState } from "../../../../main/developer/types";
+import type { DevCatchMeUpSummary, DevGitPushResult, DevImplementationPlanSummary, DevModeState } from "../../../../main/developer/types";
 
 /**
  * Classifies whether an utterance is a Developer Mode session query.
@@ -34,30 +34,36 @@ export function isImplementationPlanQuery(text: string): boolean {
   );
 }
 
+export function isGitPushQuery(text: string): boolean {
+  const norm = text.toLowerCase().trim();
+  return (
+    norm.includes("push to github") ||
+    norm.includes("push changes to github") ||
+    norm.includes("push the changes to github") ||
+    norm.includes("push this code to github") ||
+    norm.includes("push the code to github") ||
+    norm.includes("push to git") ||
+    norm.includes("commit and push") ||
+    norm.includes("git push")
+  );
+}
+
 export function isDevSessionQuery(text: string): boolean {
-  return isCatchMeUpQuery(text) || isImplementationPlanQuery(text);
+  return isCatchMeUpQuery(text) || isImplementationPlanQuery(text) || isGitPushQuery(text);
 }
 
 export function formatPlanForSpeech(plan: DevImplementationPlanSummary): string {
-  const intro = plan.isProposed
-    ? "Here is a newly generated implementation plan proposal based on available session evidence:"
-    : "Here is the implementation plan captured from the session:";
-
   if (plan.steps.length === 0) {
     if (plan.clarificationNeeded) {
-      return `${intro} No concrete steps could be verified. Note: ${plan.clarificationNeeded}`;
+      return `Implementation plan unavailable. Note: ${plan.clarificationNeeded}`;
     }
-    return `${intro} No explicit steps found and insufficient session evidence to formulate a proposal.`;
+    return "No explicit steps found and insufficient session evidence to formulate a proposal.";
   }
 
-  const stepsText = plan.steps
-    .map(
-      (s) =>
-        `Step ${s.stepNumber}: ${s.description}. Status: ${s.status}. Verification: ${s.verificationCriteria}.`
-    )
-    .join(" ");
-
-  return `${intro} ${stepsText}`;
+  // Strictly 10 lines (1 line per step)
+  return plan.steps
+    .map((s) => `${s.stepNumber}. ${s.description} [${s.status.toUpperCase()}]`)
+    .join("\n");
 }
 
 export interface DevVoiceQueryResult {
@@ -74,12 +80,14 @@ export async function handleDevModeVoiceQuery(
     catchMeUp: () => Promise<DevCatchMeUpSummary>;
     getPlan: () => Promise<DevImplementationPlanSummary>;
     ask: (question: string) => Promise<string>;
+    gitPush?: (commitMessage?: string) => Promise<DevGitPushResult>;
   }
 ): Promise<DevVoiceQueryResult> {
   const catchMeUp = isCatchMeUpQuery(userText);
   const plan = isImplementationPlanQuery(userText);
+  const gitPush = isGitPushQuery(userText);
 
-  if (!catchMeUp && !plan) {
+  if (!catchMeUp && !plan && !gitPush) {
     return { handled: false };
   }
 
@@ -94,6 +102,44 @@ export async function handleDevModeVoiceQuery(
     };
   }
 
+  // Handle direct git push in developer mode
+  if (gitPush) {
+    if (!devModeApi.gitPush) {
+      return {
+        handled: true,
+        reply: "Git push automation is unavailable in the current environment.",
+      };
+    }
+    const res = await devModeApi.gitPush();
+    if (!res.ok) {
+      return {
+        handled: true,
+        reply: `Git push failed: ${res.error || "Unknown git error"}`,
+      };
+    }
+    const hashInfo = res.commitHash ? ` as commit ${res.commitHash}` : "";
+    const filesInfo = res.filesChanged !== undefined ? ` (${res.filesChanged} file${res.filesChanged === 1 ? "" : "s"} updated)` : "";
+    return {
+      handled: true,
+      reply: `Directly staged all files, committed${hashInfo}${filesInfo}, and pushed to GitHub branch ${res.branch || "main"}.`,
+    };
+  }
+
+  // Combined query: "catch me up implementation plan"
+  if (catchMeUp && plan) {
+    const [summary, planSummary] = await Promise.all([
+      devModeApi.catchMeUp(),
+      devModeApi.getPlan(),
+    ]);
+    return {
+      handled: true,
+      reply: `${summary.summary}\n\n${formatPlanForSpeech(planSummary)}`,
+      isCatchMeUp: true,
+      isPlan: true,
+    };
+  }
+
+  // 5-line catch-up summary
   if (catchMeUp) {
     const summary = await devModeApi.catchMeUp();
     return {
@@ -103,6 +149,7 @@ export async function handleDevModeVoiceQuery(
     };
   }
 
+  // 10-line implementation plan
   if (plan) {
     const planSummary = await devModeApi.getPlan();
     return {

@@ -87,15 +87,16 @@ function MainExperience({ data }: { data: PublicConfig }) {
   );
 
   // Session actions relayed from the notch window (which can't reach `useDex`).
-  const { submitText, toggleMute, newConversation } = dex;
+  const { submitText, toggleMute, newConversation, toggleExecutionMode } = dex;
   useEffect(
     () =>
       window.opendex.onRemoteCommand((cmd) => {
         if (cmd.type === "submitText") submitText(cmd.text);
         else if (cmd.type === "toggleMute") toggleMute();
         else if (cmd.type === "newConversation") newConversation();
+        else if (cmd.type === "toggleExecutionMode") toggleExecutionMode(cmd.enabled);
       }),
-    [submitText, toggleMute, newConversation],
+    [submitText, toggleMute, newConversation, toggleExecutionMode],
   );
 
   return (
@@ -125,6 +126,8 @@ function MainExperience({ data }: { data: PublicConfig }) {
         toggleMute={dex.toggleMute}
         onOpenSettings={() => window.opendex.openSettings()}
         onMinimize={() => window.opendex.setWindowMode("notch")}
+        isExecutionMode={dex.isExecutionMode}
+        onToggleExecutionMode={dex.toggleExecutionMode}
       />
 
       {/* Global chrome. Tool-activity hints + the Stop

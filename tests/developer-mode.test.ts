@@ -4,6 +4,7 @@ import { DeveloperSessionStore } from "../src/main/developer/session-store";
 import { DeveloperModeController } from "../src/main/developer/controller";
 import type { DevSessionEvent } from "../src/main/developer/types";
 import { extractGoogleSearchQuery, isDirectAppCommand } from "../src/main/agent/direct-executor";
+import { isGitPushQuery, formatPlanForSpeech } from "../src/renderer/src/lib/dex/dev-mode-router";
 
 describe("Talkit Developer Mode — Session Store & Evidence Grounding", () => {
   let store: DeveloperSessionStore;
@@ -261,6 +262,46 @@ describe("Talkit Developer Mode — Session Store & Evidence Grounding", () => {
     assert.equal(store.getEvents("session-clear").length, 1);
     store.clear("session-clear");
     assert.equal(store.getEvents("session-clear").length, 0);
+  });
+
+  it("formats catch-me-up summary strictly into 5 structured lines", () => {
+    store.ingest({
+      id: "prompt-1",
+      sessionId: "session-5line",
+      timestamp: 1000,
+      source: "antigravity",
+      type: "user_prompt",
+      content: "Add GitHub direct push feature",
+      status: "complete",
+      confidence: 1.0,
+    });
+    const summary = store.generateCatchMeUpSummary("session-5line");
+    const lines = summary.summary.split("\n");
+    assert.equal(lines.length, 5, "Catch-me-up summary must have strictly 5 lines");
+    assert.match(lines[0], /^1\. Goal:/);
+    assert.match(lines[1], /^2\. Verified:/);
+    assert.match(lines[2], /^3\. Reported:/);
+    assert.match(lines[3], /^4\. Active & Blockers:/);
+    assert.match(lines[4], /^5\. Next Steps:/);
+  });
+
+  it("generates an implementation plan with strictly 10 steps and 10 speech lines", () => {
+    const plan = store.generateImplementationPlanSummary("session-10step");
+    assert.equal(plan.steps.length, 10, "Implementation plan must have strictly 10 steps");
+    for (let i = 0; i < 10; i++) {
+      assert.equal(plan.steps[i].stepNumber, i + 1);
+      assert.ok(plan.steps[i].description.length > 0);
+    }
+    const speechLines = formatPlanForSpeech(plan).split("\n");
+    assert.equal(speechLines.length, 10, "Spoken implementation plan must produce strictly 10 lines");
+  });
+
+  it("classifies voice git push commands in developer mode", () => {
+    assert.equal(isGitPushQuery("push changes to github"), true);
+    assert.equal(isGitPushQuery("push to github"), true);
+    assert.equal(isGitPushQuery("commit and push"), true);
+    assert.equal(isGitPushQuery("git push"), true);
+    assert.equal(isGitPushQuery("open calculator"), false);
   });
 });
 

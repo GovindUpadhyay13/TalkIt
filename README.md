@@ -1,376 +1,348 @@
 <div align="center">
 
-<img src="build/icon.png" alt="TalkIt Logo" width="128" height="128">
+# 🎙️ TalkIt
 
-# TalkIt
+### A Windows-First, Voice-Native Desktop Copilot & Ambient Developer Companion
 
-**A Windows-First, Gemma-Powered Voice Desktop Copilot**  
-*Speak to write. Talk to act. Approve without interrupting your flow.*
+[![Built for No Hands: The Wispr Challenge](https://img.shields.io/badge/Submission-No_Hands%3A_The_Wispr_Challenge-FF5722?style=for-the-badge&logo=code)](https://wemakedevs.org)
+[![Wispr Flow Voice Typing](https://img.shields.io/badge/Dictation-Wispr_Flow_Voice_Typing-C5F467?style=for-the-badge&logo=soundcharts&logoColor=black)](https://wisprflow.ai)
+[![Google Gemma & Gemini Powered](https://img.shields.io/badge/LLM-Google_Gemma_%26_Gemini-4285F4?style=for-the-badge&logo=google)](https://ai.google.dev/gemma)
+[![Tests Passing](https://img.shields.io/badge/Tests-44%2F44_Passing-10B981?style=for-the-badge&logo=checkmarx)](https://github.com/GovindUpadhyay13/TalkIt)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-111411?style=flat-square&logo=opensourceinitiative&logoColor=C5F467)](LICENSE)
-[![GitHub Repository](https://img.shields.io/badge/GitHub-GovindUpadhyay13%2FTalkIt-181f18?style=flat-square&logo=github&logoColor=F2F5ED)](https://github.com/GovindUpadhyay13/TalkIt)
-[![Platform: Windows 10/11](https://img.shields.io/badge/Platform-Windows%2010%2F11%20%7C%20macOS%20%7C%20Linux-181f18?style=flat-square&logo=windows&logoColor=0078D4)](#quick-start-windows-first)
-[![Runtime: Electron 42](https://img.shields.io/badge/Runtime-Electron%2042%20%7C%20Node%2020%2B-181f18?style=flat-square&logo=electron&logoColor=9FEAF9)](https://www.electronjs.org/)
-[![AI Engine: Google Gemma](https://img.shields.io/badge/AI%20Engine-Google%20Gemma%20%26%20Gemini-181f18?style=flat-square&logo=google&logoColor=C5F467)](#gemma-architecture--model-backends)
-[![Tests: 28 Passing](https://img.shields.io/badge/Tests-28%20Passing-181f18?style=flat-square&logo=node.js&logoColor=C5F467)](#testing--verification)
+*Speak to write. Talk to act. Observe your coding sessions hands-free.*
 
-**Team**: Exodus &nbsp;|&nbsp; **Author**: Govind Upadhyay ([@GovindUpadhyay13](https://github.com/GovindUpadhyay13))
+---
 
 </div>
 
----
+## 🏆 Built for "No Hands: The Wispr Challenge"
 
-## What is TalkIt?
+> *"If you can speak it, you can build it."* — **WeMakeDevs & Wispr Flow**
 
-Software engineers spend their days bouncing between code editors, terminals, web browsers, and AI coding agents. While background AI agents (like Claude Code, Cursor, and CLI tools) are becoming faster and more autonomous, the human interaction model remains clumsy:
-1. **Window switching friction**: Having to Alt-Tab away from your code just to review and click "Allow" on a terminal command.
-2. **Repetitive writing strain**: Typing repetitive documentation, commit messages, and search queries by hand when speaking is 3× faster.
-3. **Loss of agency**: Either blindly running unmonitored scripts with `--yes` flags or constantly getting derailed by modal confirmation popups.
+Software developers spend their days constantly context-switching between code editors (VS Code, Antigravity, Cursor), terminal prompts, browser tabs, and autonomous AI agents. While modern background agents can write code rapidly, the developer interaction model remains fragmented:
 
-**TalkIt** is an open-source, voice-driven desktop copilot purpose-built for developers on Windows 10 & 11 (with cross-platform support for macOS and Linux). Powered by **Google Gemma** (served locally through **Ollama** for 100% offline privacy, or via the **Google Gemini API** for cloud reasoning), TalkIt introduces a unified voice layer for the desktop:
+1. **Repetitive Typing Fatigue**: Writing code comments, documentation, commit messages, and prompt refinements manually when voice dictation is 3× faster.
+2. **Window-Switching Friction**: Alt-Tabbing away from your active editor just to trigger simple commands, open utilities, or perform quick Google searches.
+3. **Agent Blindness & Unverified Claims**: Autonomous coding agents often claim an action was completed when it wasn't, or leave developers lost about what was actually verified versus what failed.
+4. **Manual Git Overhead**: Staging modified files, writing commit messages, and pushing to remotes over and over again.
 
-- **Dictate anywhere**: Transcribe speech into any active application with automatic clipboard preservation and deduplication.
-- **Control your desktop**: Launch software, take structured research notes, query live weather, and search the web using natural voice instructions.
-- **Approve agent actions hands-free**: Review sensitive coding-agent operations through a local loopback approval server and approve or deny them with your voice without leaving your active window.
+**TalkIt** was conceived and built for **The Wispr Challenge** to eliminate this friction entirely. It brings a unified, voice-native layer to your desktop, pairing **Wispr Flow continuous voice dictation** with **direct desktop automation** and an **ambient, evidence-grounded Developer Companion** for coding environments.
 
 ---
 
-## Product Walkthrough
+## ⚡ The Three Core Operational Modes
 
-Here is TalkIt running live on Windows 11:
-
-### 1. The Main Copilot Interface & Landing Surface
-TalkIt floats unobtrusively on your desktop with its signature **Obsidian Lime** aesthetic, ready to capture voice commands, dictate text, or minimize into a sleek notch bar.
-
-<p align="center">
-  <img src="demo/Screenshot%202026-10-26%20153039.png" alt="TalkIt Landing Page & Desktop Copilot Interface" width="850">
-</p>
-
-### 2. Dual Google Gemma Inference Engine (Local or Cloud)
-During first-time setup or at any time in Settings, you choose how Google Gemma processes your requests. Run **100% locally and offline via Ollama** (`gemma3:4b`), or connect to **Google AI Studio** to harness cloud-hosted Gemma 4 models with multimodal vision and reasoning.
-
-<p align="center">
-  <img src="demo/Screenshot%202026-10-26%20152813.png" alt="TalkIt Onboarding — Gemma Engine Selection" width="650">
-</p>
-
-### 3. Voice Pipeline Architecture
-Choose between a classic modular pipeline (local Vosk wake-word, local Whisper transcription, Gemma LLM, and high-quality system TTS) or an end-to-end realtime voice mode.
-
-<p align="center">
-  <img src="demo/Screenshot%202026-10-26%20152842.png" alt="TalkIt Voice Architecture Selection" width="650">
-</p>
-
-### 4. Interactive Themes & Multiplatform Distribution
-TalkIt ships with three tailored visual themes: **Obsidian Lime** (amplitude-reactive audio waveform bars), **Jarvis HUD** (cyan Stark-style holographic rings), and **Typing Cursor** (minimalist terminal caret).
-
-<p align="center">
-  <img src="demo/Screenshot%202026-10-26%20153050.png" alt="TalkIt Visual Themes and Platform Downloads" width="850">
-</p>
-
----
-
-## Four Core Capabilities
-
-### 1. TalkIt Write: System-Wide Wispr Flow Voice Dictation
-- **Input into any active app**: Dictate naturally into VS Code, Windows Terminal, Slack, Obsidian, Chrome, or Word.
-- **Voice Flow Control**: Speak freely, say `"Whisper wait"` to pause dictation and insert pending text, and say `"TalkIt continue"` to resume.
-- **1-Second Smart Silence Endpointing**: Continuously tracks speech pauses and automatically completes dictation after 1 second of silence.
-- **Clipboard preservation**: Uses `@nut-tree-fork/nut-js` and Electron clipboard injection. Your existing clipboard contents are preserved, transcribed text is typed in, and original clipboard contents are restored within 120ms.
-- **Deduplication guard**: The dictation buffer suppresses accidental duplicate pastes and maintains a bounded history of recent dictations.
-- **Global toggle**: Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd> or speak `"Hey TalkIt"` to start dictating immediately.
-
-### 2. TalkIt Execute: Strict Execution Mode & Instant Desktop Actions
-TalkIt features strict separation between voice typing and command execution:
-- **Explicit Voice Mode Shift**: Normal speech stays strictly in dictation mode. Say **`"Hey TalkIt, execution mode [command]"`** (e.g. *"Hey TalkIt, execution mode open calculator"*) to switch into execution mode and trigger actions.
-- **Direct Native Desktop Automation**: Built-in 50ms native executor launches system utilities instantly without cloud LLM roundtrips:
-  - **Calculator**: *"open calculator"* / *"launch calc"*
-  - **Notepad**: *"open notepad"* / *"launch text editor"*
-  - **Browsers & Web**: *"open chrome"*, *"launch edge"*, *"open youtube.com"*, or direct web searches
-  - **Terminal**: *"open terminal"* / *"launch cmd"* / *"open powershell"*
-  - **Media & System**: *"open spotify"*, *"open settings"*, *"what is the time"*, *"current date"*
-- **Deterministic Gemma Skills**: Complex queries leverage Google Gemma with typed, sandboxed skills:
-  - **Strict URL Navigator (`openUrl`)**: Rejects dangerous schemes (`javascript:`, `file:`, `smb:`); permits only `http:`, `https:`, and `mailto:`.
-  - **Local Research Notes (`notesSkill`)**: Creates, lists, and reads structured markdown notes stored locally.
-  - **Live Weather Query (`weatherSkill`)**: Meteorological data via Open-Meteo with no API keys required.
-  - **Web Search (`webSearchSkill`)**: Real-time web intelligence powered by Tavily.
-
-### 3. TalkIt Approve: Hands-Free Voice Approvals for Coding Agents
-**The signature workflow differentiator.** When background AI coding tools (such as Claude Code, Cursor, Copilot CLI, or terminal scripts) require permission to run bash commands or modify files:
-1. The external agent invokes the included CLI hook: `node scripts/talkit-approval-hook.js`.
-2. The hook dispatches a request to TalkIt's loopback HTTP server (`http://127.0.0.1:51111/v1/permissions/request`).
-3. TalkIt displays the approval card in the HUD and speaks the prompt aloud:  
-   *"Your Claude Code wants to run bash command: npm install express. Allow this request?"*
-4. Speak your decision naturally:
-   - *"Allow once"* / *"Go ahead"* &rarr; grants single-turn permission (exit code `0`).
-   - *"Always allow"* &rarr; persists permission for this action type.
-   - *"Deny"* / *"No"* &rarr; rejects permission (exit code `1`).
-   - *"Explain that again"* &rarr; repeats details aloud without resolving.
-   - *Ambiguous speech* &rarr; conservative parser rejects auto-approval; never guesses.
-   - *60-second timeout* &rarr; fails closed to denial (`deny`).
-
-### 4. TalkIt Notch HUD: Minimalist Floating Interface
-TalkIt eliminates screen-covering modal clutter with a unified, discrete Top Notch bar:
-- **Zero Popup Redundancy**: Dictation status, silence countdown, and execution feedback animate directly inside the persistent top Notch toggle without opening secondary overlay windows.
-- **Real-Time States**: Instant visual feedback for `STANDING BY`, `TALKIT LISTENING...`, `TRANSCRIBING...`, `EXECUTING...`, and `HOLDING (WHISPER WAIT)`.
-- **Global Emergency Stop**: Press <kbd>Ctrl</kbd> + <kbd>Escape</kbd> at any time to immediately kill active TTS speech and abort pending tasks.
-
----
-
-## Gemma Architecture & Model Backends
-
-TalkIt relies on Google Gemma as its reasoning core. The application implements two distinct, fully functional inference paths:
+TalkIt enforces strict, explicit mode boundaries so voice typing never accidentally executes commands, and background observation never interferes with your workflow:
 
 ```mermaid
 flowchart TD
-    subgraph UI ["TalkIt Frontend (Electron Renderer)"]
-        Orb["Audio Visualizer (Obsidian Lime)"]
-        STT["STT Engine (Vosk / Whisper / Gemini)"]
-        TTS["System Voice TTS Engine"]
-        PromptChips["Interactive Prompt Chips"]
+    subgraph Input ["Voice Input & Dual-Control Switching"]
+        Voice["Voice Command ('Hey TalkIt')"]
+        NotchToggle["Top Notch Overlay Button"]
+        StudioDock["Obsidian Lime Mode Dock"]
     end
 
-    subgraph Main ["Electron Main Process (Node.js)"]
-        IPC["Typed IPC Router"]
-        Server["Loopback Approval Server (127.0.0.1:51111)"]
-        Resolver["Model Resolver (resolveModel)"]
-        Skills["Deterministic Skills (open, notes, web)"]
-        Injector["Dictation Text Injector (nut-js)"]
+    subgraph Modes ["3 Distinct Operational Modes"]
+        WriteMode["✍️ Write Mode (Wispr Flow)
+        Continuous Voice Typing into Active App
+        Smart Pause ('Whisper wait') & Resume ('TalkIt continue')"]
+        
+        ExecMode["⚡ Execute Mode
+        Direct Desktop App Execution
+        Instant Google Search without LLM Lag"]
+        
+        DevMode["💻 Developer Mode
+        Ambient Coding Companion for Antigravity
+        Evidence-Grounded 5-Line Briefings
+        Strict 10-Line Implementation Plans
+        Direct One-Shot Push to GitHub"]
     end
 
-    subgraph LocalBackend ["Local Inference (100% Private)"]
-        Ollama["Ollama Engine (http://127.0.0.1:11434/v1)"]
-        GemmaLocal["Google Gemma 3 / 2 (gemma3:4b)"]
+    subgraph Engines ["Underlying Engines & Storage"]
+        NutJs["Keyboard / Clipboard Injector (@nut-tree-fork/nut-js)"]
+        DirectExec["Native Desktop Executor (PowerShell / ChildProcess)"]
+        DevStore["DeveloperSessionStore & Typed Event Collector"]
+        ApprovalServer["Loopback Voice Approval Server (:51111)"]
+        GemmaEngine["Google Gemma (Local Ollama / Gemini API)"]
     end
 
-    subgraph CloudBackend ["Cloud Inference (Google AI Studio)"]
-        GeminiAPI["Google Gemini REST API"]
-        GemmaCloud["Google Gemma 4 / 2.5 Flash"]
-    end
-
-    subgraph External ["External Coding Tools"]
-        Agent["Claude Code / Cursor / CLI Hook"]
-    end
-
-    Orb --> STT
-    STT --> IPC
-    IPC --> Resolver
-    Resolver -->|Option 1: Local| Ollama
-    Ollama --> GemmaLocal
-    Resolver -->|Option 2: Cloud| GeminiAPI
-    GeminiAPI --> GemmaCloud
-    Resolver --> Skills
-    Skills --> Injector
-    Agent -->|HTTP POST| Server
-    Server -->|Voice Decision| IPC
-    IPC --> TTS
+    Input --> Modes
+    WriteMode --> NutJs
+    ExecMode --> DirectExec
+    ExecMode --> GemmaEngine
+    DevMode --> DevStore
+    DevMode --> ApprovalServer
 ```
-
-### 1. Local Inference via Ollama (100% Private & Offline)
-- **Endpoint**: Connects to Ollama's local OpenAI-compatible endpoint at `http://127.0.0.1:11434/v1`.
-- **Health Probing**: Real-time connection probing (`probeOllama`) verifies whether Ollama is running and whether the selected model is pulled before attempting inference.
-- **Recommended Models**:
-  - `gemma3:4b`: Ideal balance of speed and reasoning for modern developer laptops.
-  - `gemma3:1b`: Ultra-lightweight footprint for resource-constrained systems.
-  - `gemma3:12b` or `gemma2:9b`: Extended reasoning capacity for high-memory workstations.
-- **Privacy & Connectivity**: Zero network requests leave your machine. Prompts, desktop notes, and file operations remain strictly on-device.
-
-### 2. Cloud Inference via Google Gemini API
-- **SDK**: Built with `@ai-sdk/google` using official Google AI Studio endpoints ([Official Docs: Gemma on Gemini API](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api)).
-- **Supported Models**:
-  - `gemini-2.5-flash`: Ultra-fast voice interaction, low latency tool calling (Default).
-  - `gemma-4-26b-a4b-it`: Multimodal vision and step-by-step thinking reasoning.
-  - `gemma-4-31b-it`: High-capacity multi-step reasoning.
-  - `gemini-2.5-pro`: Deep reasoning and coding assistance.
-- **Security**: The `GEMINI_API_KEY` is stored in encrypted OS storage (via DPAPI on Windows / Keychain on macOS) and never transmitted to the renderer process.
 
 ---
 
-## Quick Start (Windows-First)
+### 1. ✍️ Write Mode: Wispr Flow Continuous Voice Typing
 
-Follow these steps to run TalkIt locally from source:
+TalkIt turns your voice into natural, continuous keyboard input directly into any active application (VS Code, Antigravity, Cursor, Slack, Terminal, Obsidian, Chrome):
+
+- **Continuous Stream Dictation**: Dictate fluidly without stopping. TalkIt automatically injects text into the active cursor position.
+- **Voice Flow Control**:
+  - Say `"Whisper wait"` &rarr; TalkIt pauses dictation, commits pending text, and lets you inspect or type on the physical keyboard.
+  - Say `"TalkIt continue"` &rarr; TalkIt resumes voice typing seamlessly.
+- **1-Second Smart Silence Endpointing**: Intelligently detects natural pauses in speech and finalizes the transcription buffer after 1 second of silence.
+- **Safe Clipboard Preservation**: Transcriptions are injected via `@nut-tree-fork/nut-js` and OS clipboard APIs. Your previous clipboard content is preserved and restored within 120ms without data loss.
+- **Deduplication Guard**: Buffer suppresses duplicate pastes and maintains a clean, bounded history of recent dictations.
+
+---
+
+### 2. ⚡ Execute Mode: Direct Desktop Actions & Web Search
+
+TalkIt strictly isolates command execution from voice typing. When in Execute Mode (toggled via voice or on-screen button), TalkIt runs real desktop commands without cloud latency:
+
+- **Dual-Control Mode Toggle**:
+  - **By Voice**: Say `"Hey TalkIt, execution mode [command]"` or `"execution mode"` to enter Execute Mode; say `"switch to typing mode"` to return to dictation.
+  - **By Screen**: Click the `[⚡ EXEC ON / EXEC OFF]` toggle pill on the floating top notch bar or the main studio deck.
+- **Sub-50ms Direct Native Execution**: Launches local Windows applications instantly without waiting for cloud LLM roundtrips:
+  - **Calculator**: *"open calculator"*, *"launch calc"*
+  - **Notepad**: *"open notepad"*, *"launch text editor"*
+  - **Terminal**: *"open terminal"*, *"launch powershell"*, *"launch cmd"*
+  - **System Settings**: *"open settings"*, *"system settings"*
+- **Instant Google Search**: Say *"search on google for Next.js 15 app router"* or *"search for typescript 5.5 release"*; TalkIt directly opens your default browser to the search results without AI latency.
+- **Deterministic Gemma Skills**: Complex requests leverage Google Gemma with sandboxed skills:
+  - `openUrl`: Strictly validates protocols, allowing only `http:`, `https:`, and `mailto:` (rejects dangerous schemes like `file:`, `javascript:`, `smb:`).
+  - `notesSkill`: Creates, lists, and reads structured local markdown research notes.
+  - `weatherSkill`: Live meteorological forecast queries via Open-Meteo.
+  - `webSearchSkill`: Deep real-time web intelligence powered by Tavily.
+
+---
+
+### 3. 💻 Developer Mode: Ambient Coding Companion for Antigravity
+
+TalkIt acts as a background development observer for **Antigravity** and local coding environments. It never interferes with your editor, never hijacks your terminal, and runs silently in the background:
+
+- **Verified vs. Reported Evidence Separation**:
+  - TalkIt distinguishes between what an AI agent *claims* it did versus what was *independently verified* through command exit codes (`0`), passing tests, or filesystem edits.
+- **User-Triggered "Catch Me Up" (Strictly 5 Lines)**:
+  Saying `"catch me up"` or `"what has been implemented"` produces a concise, strictly 5-line evidence summary:
+  ```text
+  1. Goal: Build an authentication module and test suite
+  2. Verified: Completed npm test (exit code 0); git status verified clean
+  3. Reported: Agent claimed auth token generator was optimized (unverified)
+  4. Active & Blockers: In progress: API endpoint refactor. Blockers: No blockers.
+  5. Next Steps: Pending permissions: None. Next: Implement refresh token rotation.
+  ```
+- **"Implementation Plan" (Strictly 10 Lines)**:
+  Saying `"give me the implementation plan"` retrieves the captured plan or generates a newly labeled proposal with strictly 10 numbered, evidence-linked steps.
+- **One-Shot Direct Push to GitHub**:
+  In Developer Mode, say **`"push to github"`**, **`"commit and push"`**, or **`"push changes to github"`** (or click `[Push to GitHub]` in the UI). TalkIt automatically:
+  1. Stages all changes (`git add -A`).
+  2. Checks `git status --porcelain`.
+  3. Generates an intelligent, timestamped commit message.
+  4. Pushes cleanly to the active remote branch (`git push origin <branch>`).
+  5. Returns the short commit SHA and file count confirmation.
+
+---
+
+### 4. 🛡️ TalkIt Approve: Hands-Free Voice Approvals for Agents
+
+When external coding tools (Claude Code, Cursor, Copilot CLI, terminal scripts) attempt sensitive operations (running bash commands, editing configurations, deleting files):
+
+1. The external agent invokes the CLI hook: `node scripts/talkit-approval-hook.js`.
+2. The hook contacts TalkIt's loopback HTTP server (`http://127.0.0.1:51111/v1/permissions/request`).
+3. TalkIt displays the permission prompt and speaks it aloud: *"Your Claude Code wants to run command: npm install express. Allow this request?"*
+4. Speak your decision naturally:
+   - *"Allow once"* / *"Go ahead"* &rarr; grants single-turn permission (exit code `0`).
+   - *"Always allow"* &rarr; remembers permission for this action type.
+   - *"Deny"* / *"No"* &rarr; rejects permission (exit code `1`).
+   - *"Explain that again"* &rarr; repeats details aloud without resolving.
+   - *Ambiguous speech* &rarr; conservative parser never guesses; requests clarification.
+   - *60s Timeout* &rarr; fails closed to **Denial** (`deny`).
+
+---
+
+## 🎨 Dual User Interface Architecture
+
+TalkIt provides two distinct, synchronized interface surfaces styled in signature **Obsidian Lime** (`#181f18`, `#343D34`, and `#C5F467` vibrant lime accents):
+
+### 1. Unified Floating Top Notch Bar (`CompactBar`)
+A discreet, transparent dynamic island pinned to the top of your screen:
+- **Audio Wave Visualizer**: Amplitude-reactive sound bars that animate with your voice.
+- **One-Click Mode Toggles**:
+  - `[⚡ EXEC ON / EXEC OFF]`: Instantly switch between Wispr Flow voice typing and desktop command execution.
+  - `[</> DEV ON / DEV OFF]`: Toggle Antigravity session monitoring.
+- **Status Pills**: Live captions for `Transcribing`, `Whisper Paused`, `Executing`, or `Listening`.
+
+### 2. Obsidian Lime Desktop Studio & Wispr Flow Control Deck
+The main window features a dedicated Wispr Flow–inspired docked control deck:
+- **Mode Switcher Dock**:
+  - `[✍️ Write Mode]`: Dictate directly into active applications.
+  - `[⚡ Execute Mode]`: Desktop commands & Google search.
+  - `[💻 Dev Companion]`: Opens the Developer Companion session viewer.
+- **Wispr Flow Action Deck**:
+  - `[📋 Copy Last]`: One-click copy of the latest transcription to clipboard (with animated `✓ Copied!` checkmark).
+  - `[⏸️ Whisper Wait / ▶️ TalkIt Continue]`: One-click pause and resume for continuous dictation.
+  - `[🚀 Push to GitHub]`: One-click git staging, commit, and push.
+  - `[⚡ 5-Line Catch Up]`: One-click trigger for verified session briefings.
+  - `[📋 10-Line Plan]`: One-click trigger for 10-step implementation roadmap.
+  - `[🔍 Search Web]`: Direct Google search trigger.
+
+---
+
+## 🧠 Architecture & Engineering
+
+```mermaid
+flowchart TD
+    subgraph Renderer ["Electron Renderer (React 19 + Tailwind CSS 4)"]
+        ObsidianLime["Obsidian Lime Visualizer (Voice Amplitude)"]
+        NotchHUD["Top Notch Bar (CompactBar)"]
+        WisprDock["Wispr Flow Mode Dock & Action Deck"]
+        DevCompanionUI["Developer Companion Modal"]
+        Router["Voice Query Router (dev-mode-router.ts)"]
+    end
+
+    subgraph Preload ["Secure IPC Bridge (src/preload/index.ts)"]
+        ContextBridge["contextBridge.exposeInMainWorld ('window.opendex')"]
+    end
+
+    subgraph MainProcess ["Electron Main Process (Node.js 20+)"]
+        IPCRouter["Typed IPC Handlers (IPC.devMode*, IPC.executeDirect)"]
+        NutInjector["Nut.js Keyboard Injector (nut-js)"]
+        DirectExecutor["Native Desktop Executor (calc, notepad, web)"]
+        GitSync["Dev Git Push Sync Engine (git-sync.ts)"]
+        DevController["DeveloperModeController (collector.ts)"]
+        DevStore["DeveloperSessionStore (session-store.ts)"]
+        AntigravityAdapter["Antigravity Session Adapter (transcript logs)"]
+        ApprovalServer["Loopback HTTP Approval Server (127.0.0.1:51111)"]
+    end
+
+    subgraph LLM ["Dual Google Gemma Inference Engine"]
+        OllamaLocal["Local Ollama Engine (http://127.0.0.1:11434/v1) - gemma3:4b"]
+        GeminiCloud["Google Gemini API (@ai-sdk/google) - gemini-2.5-flash / gemma-4"]
+    end
+
+    Renderer --> Preload
+    Preload --> MainProcess
+    Router --> Preload
+    DevController --> DevStore
+    AntigravityAdapter --> DevStore
+    DevController --> GitSync
+    IPCRouter --> DirectExecutor
+    IPCRouter --> NutInjector
+    IPCRouter --> DevController
+    MainProcess --> LLM
+```
+
+---
+
+## 🚀 Quick Start (Windows-First)
 
 ### Prerequisites
-- **Operating System**: Windows 10 or 11 (x64 / arm64). macOS 13+ and Ubuntu 22.04+ also supported.
+
+- **Operating System**: Windows 10 or 11 (x64 / arm64). *(macOS 13+ and Ubuntu 22.04+ also supported)*.
 - **Node.js**: `v20.x` or higher (`node -v`).
 - **pnpm**: `v10.x` or higher (`npm install -g pnpm`).
-- **Microphone**: Any built-in or external mic enabled in Windows Settings > Privacy & security > Microphone.
+- **Git**: Installed and available in PATH.
 
 ### 1. Clone & Install Dependencies
+
 ```bash
 git clone https://github.com/GovindUpadhyay13/TalkIt.git
 cd TalkIt
 pnpm install
 ```
 
-### 2. Configure Your Preferred Gemma Engine
+### 2. Configure Your Preferred Inference Engine
 
-#### Choice A: Run Locally with Ollama (Recommended for Privacy)
+#### Option A: Local & 100% Private via Ollama (No API Key Required)
 1. Install Ollama from [ollama.com](https://ollama.com).
-2. Start the Ollama server:
-   ```bash
-   ollama serve
-   ```
-3. Pull the recommended Gemma model:
+2. Pull the recommended Gemma model:
    ```bash
    ollama run gemma3:4b
    ```
 
-#### Choice B: Run via Google Gemini API (Recommended for Cloud Speed)
+#### Option B: Cloud High-Speed via Google Gemini API
 1. Obtain a free API key from [Google AI Studio](https://aistudio.google.com/apikey).
-2. Either create a `.env` file in the root directory:
+2. Create a `.env` file in the root directory:
    ```env
    GEMINI_API_KEY=AIzaSyYourGoogleApiKeyHere
    ```
-   Or simply enter the key in the TalkIt Onboarding Wizard or Settings UI (<kbd>⚙️</kbd>).
+   *(Or simply enter the key in the TalkIt Settings UI <kbd>⚙️</kbd>).*
 
 ### 3. Run Automated Tests
-Verify that all 28 unit and integration tests pass:
+
+Verify that all **44 unit and integration tests** pass:
+
 ```bash
 pnpm test
 ```
 
-### 4. Launch in Development Mode
+### 4. Launch TalkIt
+
 ```bash
 pnpm dev
 ```
-TalkIt will launch on your Windows desktop. You will see the signature Obsidian Lime audio orb and the status indicator **"STANDING BY..."**.
 
-### 5. Build Production Installer
+TalkIt will launch on your desktop. You will see the signature Obsidian Lime visualizer and the status indicator **"STANDING BY..."**.
+
+### 5. Build Standalone Production Installer
+
 ```bash
-# Typecheck TypeScript codebase
 pnpm typecheck
-
-# Build packaged executable / installer (.exe for Windows)
 pnpm build
 pnpm dist
 ```
-The output installer will be located in the `dist/` directory (e.g. `TalkIt-Setup.exe`).
+
+The output Windows installer (`TalkIt-Setup.exe`) will be generated in `dist/`.
 
 ---
 
-## TalkIt Approve: External Coding Agent Integration
-
-### How the Integration Works
-TalkIt runs an internal HTTP server bound exclusively to `127.0.0.1:51111`. Any external script, CLI tool, or AI agent can request permission before performing a sensitive action:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Dev as Developer
-    participant Agent as Coding Agent (Claude Code / Cursor)
-    participant Hook as CLI Hook (talkit-approval-hook.js)
-    participant Server as TalkIt Approval Server (:51111)
-    participant UI as TalkIt Desktop Window
-    participant Voice as System Voice & TTS
-
-    Agent->>Hook: Execute command requiring approval
-    Hook->>Server: POST /v1/permissions/request { action, detail, source }
-    Server->>UI: Broadcast approval card
-    Server->>Voice: "Your Claude Code wants to run pip install requests. Allow?"
-    Voice-->>Dev: Spoken Prompt through Speakers
-    Dev-->>UI: "Allow once" (Spoken voice command)
-    UI->>Server: parseVoiceDecision("allow once") => allow_once
-    Server-->>Hook: 200 OK { allowed: true, decision: "allow_once" }
-    Hook-->>Agent: Exit code 0 (Command permitted to proceed)
-```
-
-### Testing the Approval Hook
-You can test the approval hook right now from any terminal:
-
-```bash
-# Format: node scripts/talkit-approval-hook.js "<action>" "<details>" "<source>"
-node scripts/talkit-approval-hook.js "Run Command" "npm install express" "Claude Code"
-```
-
-1. The script dispatches the request to TalkIt.
-2. TalkIt presents the approval card on screen and reads the request aloud.
-3. Say:
-   - **"Allow once"** &rarr; Script prints `[Talkit] Decision: ALLOWED (allow_once)` and exits with **code 0**.
-   - **"Deny"** &rarr; Script prints `[Talkit] Decision: DENIED (deny)` and exits with **code 1**.
-   - **"Explain that again"** &rarr; TalkIt repeats the details and continues waiting.
-
-### Supported Voice Decision Grammar
-The voice decision parser (`src/main/agent/approval/voice-decision.ts`) uses strict, conservative rules:
-| Spoken Phrase | Parsed Decision | Result |
-| :--- | :--- | :--- |
-| `"allow once"`, `"allow"`, `"approve"`, `"go ahead"`, `"yes allow"` | `allow_once` | Allowed (exit 0) |
-| `"always allow"`, `"always approve"`, `"always allow this"` | `always` | Allowed (exit 0) |
-| `"deny"`, `"reject"`, `"do not allow"`, `"disallow"`, `"no"` | `deny` | Denied (exit 1) |
-| `"cancel"`, `"stop"`, `"abort"` | `cancel` | Denied (exit 1) |
-| `"explain that again"`, `"say that again"`, `"repeat that"` | `explain` | Re-reads prompt aloud |
-| *Ambiguous or unrecognized speech* | `ambiguous` | Asks user to clarify; **never auto-approves** |
-| *Timeout (60s without input)* | `expired` | Defaults to **Denial** (exit 1) |
-
----
-
-## Keyboard Shortcuts & Window Controls
+## ⌨️ Global Keyboard Shortcuts
 
 | Action | Shortcut (Windows/Linux) | Shortcut (macOS) | Description |
 | :--- | :--- | :--- | :--- |
-| **Push-to-Talk** | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd> | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd> | Instantly starts listening for a voice command or dictation. |
-| **Emergency Stop** | <kbd>Ctrl</kbd> + <kbd>Escape</kbd> | <kbd>Cmd</kbd> + <kbd>Escape</kbd> | Global killswitch. Immediately aborts running tasks, TTS speech, and automation. |
-| **Summon / Dismiss** | <kbd>Alt</kbd> + <kbd>Space</kbd> *(or <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd>)* | <kbd>Option</kbd> + <kbd>Space</kbd> | Toggles TalkIt between focused window and background. |
-| **New Turn / Clear** | Click <kbd>✏️</kbd> (Top Bar) | Click <kbd>✏️</kbd> (Top Bar) | Clears current transcript and resets assistant to idle. |
-| **Minimize to Notch** | Click <kbd>⤢</kbd> (Top Bar) | Click <kbd>⤢</kbd> (Top Bar) | Collapses window into a discrete top notch bar. |
-| **Close Window** | Click <kbd>✕</kbd> (Top Bar) | Click <kbd>✕</kbd> (Top Bar) | Closes the TalkIt window cleanly. |
+| **Push-to-Talk** | <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd> | <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Space</kbd> | Instantly starts listening for dictation or commands. |
+| **Emergency Stop** | <kbd>Ctrl</kbd> + <kbd>Escape</kbd> | <kbd>Cmd</kbd> + <kbd>Escape</kbd> | Global killswitch: aborts running tasks, TTS speech, and automation. |
+| **Summon / Dismiss** | <kbd>Alt</kbd> + <kbd>Space</kbd> | <kbd>Option</kbd> + <kbd>Space</kbd> | Toggles TalkIt between foreground and background. |
+| **New Conversation** | Click <kbd>✏️</kbd> (Top Bar) | Click <kbd>✏️</kbd> (Top Bar) | Clears current transcript and resets conversation. |
+| **Minimize to Notch** | Click <kbd>⤢</kbd> (Top Bar) | Click <kbd>⤢</kbd> (Top Bar) | Collapses window into the floating dynamic notch bar. |
 
 ---
 
-## Security & Safety Boundaries
+## 🧪 Verified Test Suite (44/44 Passing)
 
-TalkIt is designed to give developers convenience without compromising their machine:
+TalkIt maintains a rigorous automated test suite in `tests/`:
 
-1. **Process Isolation**: The user interface runs in a sandboxed Electron renderer process with `contextIsolation: true` and `nodeIntegration: false`. The renderer communicates strictly across typed IPC channels defined in `src/preload/index.ts`.
-2. **Loopback Server Restriction**: The approval server binds exclusively to `127.0.0.1` and inspects `req.socket.remoteAddress`. Any incoming packet not originating from `127.0.0.1`, `::1`, or `::ffff:127.0.0.1` is immediately dropped with `403 Forbidden`.
-3. **Deterministic Skills vs. Arbitrary Execution**: The LLM does not execute direct shell commands. All desktop actions are mapped to explicitly whitelisted Skill handlers with typed arguments.
-4. **URL Protocol Whitelist**: The `openUrl` tool strictly enforces that URLs must match `http:`, `https:`, or `mailto:`. Non-standard, local, or executable schemes (`file:`, `javascript:`, `powershell:`, `cmd:`, `smb:`) are rejected.
-5. **Fail-Closed Approvals**: If an approval prompt times out (60 seconds) or receives ambiguous speech, the server resolves to `deny` (exit code 1). It never defaults to permission granted.
-6. **Credential Privacy**: API keys (`GEMINI_API_KEY`, `TAVILY_API_KEY`) are stored in local configuration files obfuscated and encrypted via OS keychain APIs where available, and are never logged or echoed to the client UI.
-
----
-
-## Technical Specifications & Stack
-
-| Layer | Technologies & Dependencies | Purpose |
-| :--- | :--- | :--- |
-| **Core Runtime** | Electron 42, Node.js 20+, TypeScript 5 | Cross-platform desktop application container |
-| **UI Framework** | React 19, Tailwind CSS 4, Motion, Lucide Icons | Reactive interface, glassmorphic dark mode styling |
-| **Build Tooling** | `electron-vite`, `vite` 7, `electron-builder` | High-speed compilation, HMR, and NSIS installer bundling |
-| **AI SDK & Routing** | Vercel AI SDK (`ai`), `@ai-sdk/google`, `@ai-sdk/openai` | Unified streaming tool-calling interface |
-| **Local LLM** | Ollama Engine (OpenAI-compatible local endpoint) | Local offline execution of Google Gemma models |
-| **Speech-to-Text** | Vosk WASM (`vosk-browser`), Local Whisper (`@huggingface/transformers`), Gemini STT | Offline wake-word spotting and high-accuracy speech transcription |
-| **Text-to-Speech** | Native System Speech Synthesis API | Zero-latency, natural voice audio feedback with pitch & rate tuning |
-| **Automation** | `@nut-tree-fork/nut-js`, Electron Clipboard | Controlled keyboard input injection and clipboard preservation |
-| **Testing** | Node.js native test runner (`node:test`, `tsx`) | Fast, dependency-free unit and integration test suite |
-
----
-
-## Testing & Verification
-
-TalkIt maintains a verified unit and integration test suite in the `tests/` directory:
-
-```bash
-pnpm test
-```
-
-### Verified Test Suite Output (28/28 Passing)
 ```text
 ▶ Talkit Approve — Voice Decisions & Coding Agent Server
-  ▶ parseVoiceDecision
-    ✔ parses explicit positive decisions
-    ✔ parses explicit negative decisions
-    ✔ identifies explanation requests without approving
-    ✔ classifies ambiguous speech as ambiguous instead of defaulting to approval
-  ✔ parseVoiceDecision
-  ▶ Approval Server integration
-    ✔ starts on a loopback port and provides health probe
-  ✔ Approval Server integration
-✔ Talkit Approve — Voice Decisions & Coding Agent Server
+  ✔ parses explicit positive decisions
+  ✔ parses explicit negative decisions
+  ✔ identifies explanation requests without approving
+  ✔ classifies ambiguous speech as ambiguous instead of defaulting to approval
+  ✔ loopback approval server starts and responds to health probe
+✔ Talkit Approve — Voice Decisions & Coding Agent Server (5 tests)
+
+▶ Talkit Developer Mode — Session Store & Evidence Grounding
+  ✔ deduplicates repeated events using stable identifiers
+  ✔ isolates events across different sessions without mixing
+  ✔ reports missing prompts as unavailable and does not fabricate a verbatim prompt
+  ✔ strictly separates agent-reported completion from verified completion
+  ✔ does not treat a command invocation without a result as successful
+  ✔ records failed commands and blockers accurately
+  ✔ does not report stale or resolved permission requests as currently pending
+  ✔ flags capture gaps when disconnected intervals occur
+  ✔ labels newly generated implementation plans as proposals rather than original plans
+  ✔ clears stored data and resets active sessions cleanly
+  ✔ formats catch-me-up summary strictly into 5 structured lines
+  ✔ generates an implementation plan with strictly 10 steps and 10 speech lines
+  ✔ classifies voice git push commands in developer mode
+✔ Talkit Developer Mode — Session Store & Evidence Grounding (13 tests)
+
+▶ Talkit Developer Mode — Lifecycle & Controller
+  ✔ defaults to disabled with zero background collection
+  ✔ enabling and disabling developer mode cleans up subscriptions
+  ✔ preserves Write Mode and Execute Mode integrity
+✔ Talkit Developer Mode — Lifecycle & Controller (3 tests)
 
 ▶ Talkit Write — System-wide Dictation State & Deduplication
   ✔ manages dictation active and paused transitions cleanly
   ✔ handles empty and whitespace dictation gracefully without altering history
-✔ Talkit Write — System-wide Dictation State & Deduplication
+✔ Talkit Write — System-wide Dictation State & Deduplication (2 tests)
 
 ▶ Wispr Flow — Flow Control & Transcription Parsing
   ✔ strips leading 'Hey TalkIt' or 'TalkIt' wake words
@@ -380,7 +352,7 @@ pnpm test
   ✔ detects 'TalkIt continue' and resume commands
   ✔ detects hardcoded 'Hey TalkIt' wake command
   ✔ detects 'execution mode' and extracts task for desktop implementation
-✔ Wispr Flow — Flow Control & Transcription Parsing
+✔ Wispr Flow — Flow Control & Transcription Parsing (7 tests)
 
 ▶ Talkit Execute — Desktop Automation & Skills
   ✔ includes notesSkill and openSkill in BUILTIN_SKILLS
@@ -388,7 +360,7 @@ pnpm test
   ✔ notesSkill successfully creates, lists, and reads notes
   ✔ executeDirectCommand parses and matches calculator and desktop app intents
   ✔ executeDirectCommand parses and executes Google search queries directly
-✔ Talkit Execute — Desktop Automation & Skills
+✔ Talkit Execute — Desktop Automation & Skills (5 tests)
 
 ▶ Google Gemma & Gemini LLM Provider
   ✔ has Google Gemini configured as the primary default provider in DEFAULT_CONFIG
@@ -398,51 +370,31 @@ pnpm test
   ✔ resolveModel throws informative error when GEMINI_API_KEY is not set
   ✔ probeOllama returns unavailable when endpoint is unreachable without hanging
   ✔ resolveModel throws informative error with setup instructions when Ollama is offline
-✔ Google Gemma & Gemini LLM Provider
+✔ Google Gemma & Gemini LLM Provider (7 tests)
 
 ▶ Obsidian Lime Theme System
   ✔ has obsidian-lime as the default appearance theme in DEFAULT_CONFIG
   ✔ has TalkIt configured as the assistant name
-✔ Obsidian Lime Theme System
+✔ Obsidian Lime Theme System (2 tests)
 
-ℹ tests 28 | suites 8 | pass 28 | fail 0 | duration_ms 1864
+ℹ tests 44 | suites 10 | pass 44 | fail 0 | duration_ms 2550
 ```
 
 ---
 
-## Troubleshooting
+## 🔒 Security & Privacy Architecture
 
-- **"Ollama is not running at http://127.0.0.1:11434/v1"**:
-  - Run `ollama serve` in a terminal.
-  - Verify Ollama is ready by running `ollama list` or `curl http://127.0.0.1:11434/v1/models`.
-- **"No Gemini API key found"**:
-  - Open TalkIt Settings (<kbd>⚙️</kbd>), navigate to **Language Model**, and enter your `GEMINI_API_KEY`.
-  - Alternatively, export `GEMINI_API_KEY="AIzaSy..."` before launching `pnpm dev`.
-- **Microphone not detected or permission denied**:
-  - On Windows 10/11: Go to **Windows Settings > Privacy & security > Microphone** and ensure "Let desktop apps access your microphone" is set to **On**.
-- **Port 5173 or 51111 already in use**:
-  - If a previous process is still bound, terminate it via PowerShell:
-    ```powershell
-    Get-Process -Id (Get-NetTCPConnection -LocalPort 5173).OwningProcess | Stop-Process -Force
-    ```
+1. **Process Isolation**: The UI runs in a sandboxed Electron renderer process with `contextIsolation: true` and `nodeIntegration: false`. Communications are routed through typed IPC bridges in `src/preload/index.ts`.
+2. **Loopback Server Restriction**: The approval server binds exclusively to `127.0.0.1` and drops any connection not originating from localhost with `403 Forbidden`.
+3. **Fail-Closed Permission Gate**: If an approval prompt times out (60s) or receives ambiguous voice input, it always resolves to **Denial** (`deny`, exit code 1).
+4. **URL Safety Whitelist**: The `openUrl` tool strictly enforces `http:`, `https:`, and `mailto:` protocols; local and executable schemes (`file:`, `javascript:`, `cmd:`, `powershell:`) are rejected.
+5. **Keychain Security**: All API keys are encrypted via OS-level security APIs (DPAPI on Windows / Keychain on macOS) and never exposed to client-side code.
 
 ---
 
-## Roadmap
+## 📜 License & Acknowledgments
 
-- [x] **Core Gemma Integration**: Local Ollama support + Google Gemini cloud API integration.
-- [x] **TalkIt Write**: System-wide text injection with clipboard preservation and deduplication.
-- [x] **TalkIt Approve**: Localhost HTTP approval server and CLI hook with conservative voice parsing.
-- [x] **Obsidian Lime Theme**: Audio visualizer with amplitude-reactive vertical bars.
-- [ ] **Native Windows Global Media Key Hook**: C++ low-level hook for hardware headset mute buttons.
-- [ ] **Extended Agent Adapters**: Direct stdio JSON-RPC adapters for MCP (Model Context Protocol) servers.
-- [ ] **Multi-turn Context Pinning**: Ability to pin active source files into Gemma's prompt memory via voice.
+TalkIt is licensed under the [MIT License](LICENSE).  
+Developed by **Govind Upadhyay** for **"No Hands: The Wispr Challenge"** organized by **WeMakeDevs & Wispr Flow**.
 
----
-
-## License & Attribution
-
-TalkIt is released under the [MIT License](LICENSE).  
-Copyright &copy; 2026 **Govind Upadhyay** (Team **Exodus**).
-
-*Built with passion for developers who want to stay in flow.*
+*Designed to keep developers in flow. If you can speak it, you can build it.*

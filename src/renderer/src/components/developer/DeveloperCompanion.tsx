@@ -13,6 +13,7 @@ import {
   FileCode,
   Info,
   Power,
+  GitCommit,
   RefreshCw,
 } from "lucide-react";
 import type {
@@ -50,6 +51,30 @@ export function DeveloperCompanion({ isOpen, onClose }: DeveloperCompanionProps)
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
   const [answering, setAnswering] = useState(false);
+  const [gitPushing, setGitPushing] = useState(false);
+  const [gitPushStatus, setGitPushStatus] = useState<string | null>(null);
+
+  const handleGitPush = async () => {
+    if (!window.opendex?.devMode?.gitPush) return;
+    try {
+      setGitPushing(true);
+      setGitPushStatus(null);
+      const res = await window.opendex.devMode.gitPush();
+      if (res.ok) {
+        setGitPushStatus(`Successfully pushed ${res.commitHash ? `commit ${res.commitHash}` : "changes"} to ${res.branch || "main"}${res.filesChanged !== undefined ? ` (${res.filesChanged} file${res.filesChanged === 1 ? "" : "s"} updated)` : ""}.`);
+        if (window.opendex?.devMode) {
+          const newState = await window.opendex.devMode.getState();
+          setState(newState);
+        }
+      } else {
+        setGitPushStatus(`Push failed: ${res.error || "Unknown git error"}`);
+      }
+    } catch (err) {
+      setGitPushStatus(`Push error: ${String(err)}`);
+    } finally {
+      setGitPushing(false);
+    }
+  };
 
   useEffect(() => {
     if (!window.opendex?.devMode) return;
@@ -288,6 +313,15 @@ export function DeveloperCompanion({ isOpen, onClose }: DeveloperCompanionProps)
               )}
             >
               <Terminal className="size-3.5" /> Ask Session
+            </button>
+            <button
+              onClick={handleGitPush}
+              disabled={!state.enabled || gitPushing}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 bg-zinc-800/80 text-zinc-300 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30 border border-transparent disabled:opacity-40"
+              title="Stage all files, commit, and push directly to GitHub in Developer Mode"
+            >
+              <GitCommit className={cn("size-3.5", gitPushing && "animate-spin text-emerald-400")} />
+              {gitPushing ? "Pushing to GitHub..." : "Push to GitHub"}
             </button>
           </div>
 
